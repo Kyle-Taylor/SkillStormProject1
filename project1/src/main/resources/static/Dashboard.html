@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSmart | Dashboard</title>
+  <link rel="icon" type="image/png" href="/images/stocksmartlogowithbackground.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #121212;
+      color: #f1f1f1;
+    }
+
+    /* --- NAVBAR --- */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1e1e1e;
+      padding: 15px 40px;
+      border-bottom: 1px solid #2a2a2a;
+      position: relative;
+    }
+
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .navbar-left img {
+      height: 30px;
+    }
+
+    /* --- USER DROPDOWN --- */
+    .user-dropdown {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 0.9rem;
+    }
+
+    .user-dropdown:hover {
+      color: #fff;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 45px;
+      background-color: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      min-width: 150px;
+      z-index: 10;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      color: #ddd;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background-color: #2a2a2a;
+    }
+
+    /* --- DASHBOARD CONTENT --- */
+    .dashboard {
+      padding: 30px 50px;
+    }
+
+    .dashboard h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+
+    /* --- CARDS --- */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      background-color: #1f1f1f;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .card h3 {
+      color: #ccc;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .card-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .card small {
+      color: #f39c12;
+      margin-left: 5px;
+    }
+
+    /* --- TABS --- */
+    .tabs {
+      display: flex;
+      margin-top: 40px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .tab {
+      padding: 12px 25px;
+      cursor: pointer;
+      background-color: #1a1a1a;
+      color: #bbb;
+      border-radius: 8px 8px 0 0;
+      margin-right: 10px;
+    }
+
+    .tab.active {
+      background-color: #2a2a2a;
+      color: #fff;
+    }
+
+    /* --- SEARCH --- */
+    .search {
+      margin: 20px 0;
+    }
+
+    .search input {
+      width: 250px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background-color: #2b2b2b;
+      color: #f1f1f1;
+    }
+
+    /* --- BUTTON --- */
+    .actions {
+      text-align: right;
+      margin: 15px 0;
+    }
+
+    .btn {
+      background-color: #0078ff;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #3399ff;
+    }
+
+    /* --- TABLE --- */
+    .table-container {
+      padding: 20px 0;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #2a2a2a;
+      color: #ccc;
+      font-size: 0.9rem;
+    }
+
+    tr:nth-child(even) {
+      background-color: #181818;
+    }
+
+    tr:hover {
+      background-color: #242424;
+    }
+
+    a {
+      color: #3a82ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <img src="/images/StockSmartLogo.png" alt="StockSmart Logo">
+      <span>StockSmart</span>
+    </div>
+
+    <div class="navbar-right">
+      <div class="user-dropdown" id="userDropdown">
+        user@company.com ▾
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-item" onclick="window.location.href='/LandingPage'">Home</div>
+          <div class="dropdown-item" onclick="logout()">Logout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD CONTENT -->
+  <div class="dashboard">
+    <h1>Dashboard</h1>
+
+    <div class="cards">
+      <div class="card"><h3>Supply below safety stock ⚠️</h3><div class="card-value">24 <small>items</small></div></div>
+      <div class="card"><h3>Overall supply inventory</h3><div class="card-value">5,123 <small>7% ▼</small></div></div>
+      <div class="card"><h3>Warehouses Near Capacity ⚠️</h3><div class="card-value">2</div></div>
+      <div class="card"><h3>Total Inventory Value</h3><div class="card-value">$1,200,000</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">Restocking</div>
+      <div class="tab">Warehouses</div>
+      <div class="tab">Checkouts</div>
+      <div class="tab">All Stock</div>
+    </div>
+
+    <div class="search">
+      <input type="text" placeholder="🔍 Search">
+    </div>
+
+    <div class="actions">
+      <button class="btn">New order</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Order</th><th>Reference number</th><th>Date shipped</th><th>Repeating</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><a href="#">Shipment order A</a></td><td>123-1233849-12381239</td><td>09/11/2021</td><td style="color:#6eff6e;">On</td></tr>
+          <tr><td><a href="#">Shipment order B</a></td><td>932-1231234-23890283</td><td>29/10/2021</td><td style="color:#ff6666;">Off</td></tr>
+          <tr><td><a href="#">Shipment order C</a></td><td>854-2138534-38907534</td><td>22/10/2021</td><td style="color:#ff6666;">Off</td></tr>
+          <tr><td><a href="#">Shipment order D</a></td><td>584-1232356-38907434</td><td>15/10/2021</td><td style="color:#6eff6e;">On</td></tr>
+          <tr><td><a href="#">Shipment order E</a></td><td>898-3289724-64243785</td><td>12/10/2021</td><td style="color:#ff6666;">Off</td></tr>
+          <tr><td><a href="#">Shipment order F</a></td><td>859-3789048-58903745</td><td>03/10/2021</td><td style="color:#6eff6e;">On</td></tr>
+          <tr><td><a href="#">Shipment order G</a></td><td>090-3420430-02034258</td><td>01/09/2021</td><td style="color:#6eff6e;">On</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+    <script>
+    const dropdown = document.getElementById("userDropdown");
+    const menu = document.getElementById("dropdownMenu");
+
+    // Function to toggle dropdown visibility
+    function toggleDropdown() {
+        menu.classList.toggle("show");
+    }
+
+    // Hide dropdown if clicking outside
+    window.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target)) {
+        menu.classList.remove("show");
+        }
+    });
+
+    dropdown.addEventListener("click", toggleDropdown);
+
+    //  Check if user is logged in
+    async function checkLogin() {
+        try {
+        const response = await fetch("/users/current-user");
+
+        if (!response.ok) {
+            //  Not logged in
+            window.location.href = "/Login";
+            return;
+        }
+
+        //  Logged in
+        const user = await response.json();
+
+        // Update just the text content, not the whole HTML
+        const userLabel = dropdown.firstChild;
+        userLabel.textContent = `${user.email} ▾`;
+
+        } catch (err) {
+        console.error("Error verifying session:", err);
+        window.location.href = "/Login";
+        }
+    }
+
+    checkLogin();
+
+    //  Logout clears session on server
+    async function logout() {
+        try {
+        await fetch("/users/logout", { method: "POST" });
+        } catch (err) {
+        console.warn("Logout request failed:", err);
+        }
+        window.location.href = "/Login";
+    }
+    </script>
+
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.skillstorm.project1.conrollers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.skillstorm.project1.models.User;
 import com.skillstorm.project1.services.UserService;
+
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/users")
@@ -38,20 +41,37 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User loginRequest) {
-        try {
-            boolean valid = userService.validateLogin(loginRequest.getEmail(), loginRequest.getPassword());
-            if (valid) {
-                return new ResponseEntity<>("Login successful!", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Invalid email or password.", HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .header("Error", "Login process failed.")
-                    .build();
+    @GetMapping("/current-user")
+    public ResponseEntity<?> getCurrentUser(HttpSession session) {
+        Object user = session.getAttribute("user");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        return ResponseEntity.ok(user);
     }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> loginUser(@RequestBody User loginRequest, HttpSession session) {
+        Optional<User> foundUser = userService.findByEmail(loginRequest.getEmail());
+
+        if (foundUser.isPresent() && foundUser.get().getPassword().equals(loginRequest.getPassword())) {
+            session.setAttribute("user", foundUser.get());
+            return ResponseEntity.ok().build(); 
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header("Error", "Invalid email or password")
+                .build();
+    }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok().build();
+    }
+
+
 
 }

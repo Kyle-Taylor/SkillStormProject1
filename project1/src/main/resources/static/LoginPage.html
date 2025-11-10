@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StockSmart Login</title>
-  <link rel="icon" type="image/png" href="images/stocksmartlogowithbackground.png">
+  <title>StockSmart | Login</title>
+  <link rel="icon" type="image/png" href="/images/stocksmartlogowithbackground.png">
   <style>
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: #292929ff;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #121212;
       color: #f1f1f1;
       display: flex;
       justify-content: center;
@@ -19,91 +19,124 @@
 
     .login-container {
       background-color: #1e1e1e;
-      padding: 40px 50px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      width: 350px;
-    }
-
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: white;
-    }
-
-    .login-container input {
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
       width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    .login-container img {
+    width: 100px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .login-container img:hover {
+    transform: scale(1.05);
+  }
+
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    input {
       padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #555;
+      border: none;
       border-radius: 6px;
       background-color: #2a2a2a;
-      color: white;
+      color: #f1f1f1;
       font-size: 1rem;
     }
 
-    .login-container button {
-      width: 100%;
+    input:focus {
+      outline: none;
+      background-color: #333;
+    }
+
+    button {
       padding: 12px;
-      background-color: #ffffff;
-      color: #121212;
+      background-color: #0078ff;
       border: none;
       border-radius: 6px;
       font-weight: bold;
-      cursor: pointer;
+      color: #fff;
       font-size: 1rem;
-      transition: 0.2s;
+      cursor: pointer;
+      transition: background-color 0.2s;
     }
 
-    .login-container button:hover {
-      background-color: #d6d6d6;
+    button:hover {
+      background-color: #3399ff;
     }
 
-    .login-container .error {
+    .error-message {
       color: #ff6b6b;
-      text-align: center;
-      margin-bottom: 10px;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      color: #777;
     }
   </style>
 </head>
+
 <body>
   <div class="login-container">
-    <h2>Login to StockSmart</h2>
-    <div class="error" id="error-msg"></div>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button onclick="login()">Log In</button>
+    <img src="/images/StockSmartLogo.png" alt="StockSmart Logo">
+    <hr style="width: 60%; border: 0; border-top: 1px solid #333; margin: 15px auto 25px;">
+    <h1>Welcome Back!</h1>
+
+    <!-- LOGIN FORM HERE -->
+    <form onsubmit="loginUser(event)">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Log In</button>
+      <p class="error-message" id="errorMessage">Invalid email or password</p>
+    </form>
+
+    <div class="footer">© 2025 StockSmart Inventory Management</div>
   </div>
 
   <script>
-    async function login() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const errorMsg = document.getElementById('error-msg');
+    async function loginUser(event) {
+      event.preventDefault();
 
-      if (!email || !password) {
-        errorMsg.textContent = "Please enter both email and password.";
-        return;
-      }
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const errorMessage = document.getElementById("errorMessage");
 
       try {
-        const response = await fetch('http://localhost:8080/users/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/users/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password })
         });
 
         if (response.ok) {
-          alert('Login successful!');
-          window.location.href = '/dashboard.html'; // redirect after login
+          window.location.href = "/Dashboard"; //  Redirect immediately
         } else if (response.status === 401) {
-          errorMsg.textContent = "Invalid email or password.";
+          errorMessage.style.display = "block";
         } else {
-          errorMsg.textContent = "An error occurred. Please try again later.";
+          alert("Something went wrong. Please try again later.");
         }
-      } catch (err) {
-        console.error(err);
-        errorMsg.textContent = "Server connection failed.";
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("Network error. Please check your connection.");
       }
     }
   </script>
