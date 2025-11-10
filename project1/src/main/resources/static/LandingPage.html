@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSmart</title>
+    <link rel="icon" type="image/png" href="images/stocksmartlogowithbackground.png" sizes="128x128">
+
+    <style>
+        /*  GLOBAL DARK MODE STYLING */
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #292929ff; /* deep modern dark */
+            color: #f1f1f1; /* soft white text */
+        }
+
+        /*  NAVBAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .navbar-left img {
+            width: 50px;
+            height: auto;
+            /*  No grayscale filter here — keeps image in full color */
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 30px;
+            font-size: 1rem;
+            color: #cfcfcf;
+            cursor: pointer;
+        }
+
+        .navbar-menu span:hover {
+            color: #ffffff; /* hover white text */
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* 🌙 Buttons styled for dark mode */
+        .btn-login, .btn-signup {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 1px solid #888;
+            color: #f1f1f1;
+        }
+
+        .btn-login:hover {
+            background: #2a2a2a;
+            border-color: white;
+        }
+
+        .btn-signup {
+            background: #e0e0e0;
+            color: #121212;
+            border: none;
+        }
+
+        .btn-signup:hover {
+            background: white;
+        }
+
+        /*  HERO SECTION */
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 80px 60px;
+        }
+
+        .hero-text {
+            max-width: 40%;
+        }
+
+        .hero-text h1 {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .hero-text p {
+            color: #c7c7c7;
+            margin-top: 20px;
+        }
+
+        .btn-trial {
+            margin-top: 30px;
+            padding: 14px 28px;
+            background: #ffffff;
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-trial:hover {
+            background: #d6d6d6;
+        }
+
+        /*  IMAGE FRAME (keeps full color) */
+        .image-frame {
+            width: 50%;
+            background-color: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .image-frame img {
+            width: 100%;
+            border-radius: 8px;
+            filter: none; /*  Keep image in COLOR */
+        }
+
+        /* Feature Section (Dark Mode) */
+        .features-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px 40px;
+            padding: 80px 60px;
+            background-color: #292929ff;
+        }
+
+        /* Each feature "bubble" */
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            background-color: #999999ff; /* off-white bubble */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Icon inside bubble */
+        .feature-icon {
+            flex-shrink: 0;
+            padding: 10px;
+            background-color: #c9c9c9ff;
+            border-radius: 10px;
+            border: 1px solid #c9c9c9ff;
+        }
+
+        .feature-icon img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        /* Text inside bubble */
+        .feature-text h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #000; /* Dark text for light bubble */
+        }
+
+        .feature-text p {
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1000px) {
+            .features-section {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .features-section {
+                grid-template-columns: 1fr;
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="/images/StockSmartLogo.png" alt="StockSmart Logo">
+            StockSmart
+        </div>
+
+        <div class="navbar-menu">
+            <span>Features</span>
+            <span>Pricing</span>
+            <span>Reviews</span>
+            <span>Help</span>
+        </div>
+
+        <div class="navbar-right">
+            <button class="btn-signup">Sign Up</button>
+            <button class="btn-login" onclick="window.location.href='LoginPage.html'">Log In</button>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Smarter Inventory.<br>Stronger Business.</h1>
+            <p>Take control of your operations. StockSmart helps you cut waste, boost efficiency, and grow with confidence.</p>
+            <button class="btn-trial">START YOUR FREE TRIAL</button>
+        </div>
+
+        <div class="image-frame">
+            <img src="/images/Warehouse.png" alt="Warehouse">
+        </div>
+    </section>
+
+</body>
+</html>
+
+
+<!-- FEATURES SECTION -->
+<section class="features-section">
+
+    <div class="feature">
+        <div class="feature-icon">
+            <img src="/images/warehouseicon.png" alt="Warehouse Icon">
+        </div>
+        <div class="feature-text">
+            <h3>Warehouse Management</h3>
+            <p><strong>Create, edit, and delete</strong> warehouses with set capacity limits. View real-time capacity and warehouse stats at a glance.</p>
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">
+            <img src="/images/clipboardicon.jpg" alt="Inventory Control Icon">
+        </div>
+        <div class="feature-text">
+            <h3>Inventory Control</h3>
+            <p><strong>Add, update, and remove</strong> inventory items with SKU, quantity, and location. Prevent duplicates and overstocking.</p>
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">
+            <img src="/images/transfericon.png" alt="Item Transfers Icon">
+        </div>
+        <div class="feature-text">
+            <h3>Item Transfers</h3>
+            <p>Move inventory between warehouses with built-in capacity checks. Track every transfer to keep records accurate.</p>
+        </div>
+    </div>
+
+    <!-- Second row -->
+    <div class="feature">
+        <div class="feature-icon">
+            <img src="/images/dashboardicon.png" alt="Dashboard Icon">
+        </div>
+        <div class="feature-text">
+            <h3>Dashboard Overview</h3>
+            <p>View warehouse <strong>performance, activity logs, and alerts</strong> in one place. Instantly see which warehouses are near capacity.</p>
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">
+            <img src="/images/searchicon.png" alt="Search Icon">
+        </div>
+        <div class="feature-text">
+            <h3>Search & Filter</h3>
+            <p>Quickly find items or warehouses using advanced filters by name, SKU, or category.</p>
+        </div>
+    </div>
+
+    <div class="feature">
+        <div class="feature-icon">
+            <img src="/images/erroricon.png" alt="Error Handling Icon">
+        </div>
+        <div class="feature-text">
+            <h3>Error & Capacity Handling</h3>
+            <p>Get alerts for full warehouses or duplicate entries, with <strong>smart recommendations</strong> for fixes.</p>
+        </div>
+    </div>
+
+</section>
