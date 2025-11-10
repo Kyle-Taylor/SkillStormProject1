@@ -37,15 +37,19 @@ public class Inventory {
     @Column(nullable = false)
     private int quantity;
 
+    @Column(name="minimum_stock", nullable = false)
+    private int minimumStock = 0;
+
     private LocalDateTime lastUpdated = LocalDateTime.now();
 
     // Constructors
     public Inventory() {}
 
-    public Inventory(Warehouse warehouse, Product product, int quantity) {
+    public Inventory(Warehouse warehouse, Product product, int quantity, int minimumStock) {
         this.warehouse = warehouse;
         this.product = product;
         this.quantity = quantity;
+        this.minimumStock = minimumStock;
     }
 
     // Getters and Setters
@@ -61,6 +65,9 @@ public class Inventory {
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
 
+    public int getMinimumStock() {return minimumStock;}
+    public void setMinimumStock(int minimumStock) {this.minimumStock = minimumStock;}
+    
     public LocalDateTime getLastUpdated() { return lastUpdated; }
     public void setLastUpdated(LocalDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
 }

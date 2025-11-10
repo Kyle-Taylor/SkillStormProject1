@@ -95,6 +95,21 @@ public class InventoryController {
     }
 
     // ==============================================
+    // GET STOCK BELOW MIN COUNT
+    // ==============================================
+    @GetMapping("/below-minimum")
+    public ResponseEntity<List<Inventory>> findBelowMinimumStock() {
+        try {
+            List<Inventory> items = inventoryService.findBelowMinimumStock();
+            return new ResponseEntity<>(items, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .header("Error", "Failed to retrieve low-stock items.")
+                    .build();
+        }
+    }
+
+    // ==============================================
     // CREATE INVENTORY RECORD
     // ==============================================
     @PostMapping

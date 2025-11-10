@@ -23,7 +23,6 @@
       border-bottom: 1px solid #2a2a2a;
       position: relative;
     }
-
     .navbar-left {
       display: flex;
       align-items: center;
@@ -31,12 +30,7 @@
       font-weight: bold;
       font-size: 1.2rem;
     }
-
-    .navbar-left img {
-      height: 30px;
-    }
-
-    /* --- USER DROPDOWN --- */
+    .navbar-left img { height: 30px; }
     .user-dropdown {
       position: relative;
       display: inline-block;
@@ -44,11 +38,7 @@
       color: #ccc;
       font-size: 0.9rem;
     }
-
-    .user-dropdown:hover {
-      color: #fff;
-    }
-
+    .user-dropdown:hover { color: #fff; }
     .dropdown-menu {
       display: none;
       position: absolute;
@@ -61,34 +51,16 @@
       min-width: 150px;
       z-index: 10;
     }
-
-    .dropdown-menu.show {
-      display: block;
-      animation: fadeIn 0.2s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
+    .dropdown-menu.show { display: block; }
     .dropdown-item {
       padding: 12px 16px;
       color: #ddd;
-      font-size: 0.9rem;
       cursor: pointer;
-      transition: background-color 0.2s;
     }
-
-    .dropdown-item:hover {
-      background-color: #2a2a2a;
-    }
+    .dropdown-item:hover { background-color: #2a2a2a; }
 
     /* --- DASHBOARD CONTENT --- */
-    .dashboard {
-      padding: 30px 50px;
-    }
-
+    .dashboard { padding: 30px 50px; }
     .dashboard h1 {
       font-size: 1.8rem;
       font-weight: 600;
@@ -101,29 +73,21 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
     }
-
     .card {
       background-color: #1f1f1f;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-
     .card h3 {
       color: #ccc;
       font-size: 0.9rem;
       margin-bottom: 10px;
     }
-
     .card-value {
       font-size: 2rem;
       font-weight: bold;
       color: #fff;
-    }
-
-    .card small {
-      color: #f39c12;
-      margin-left: 5px;
     }
 
     /* --- TABS --- */
@@ -132,7 +96,6 @@
       margin-top: 40px;
       border-bottom: 1px solid #2a2a2a;
     }
-
     .tab {
       padding: 12px 25px;
       cursor: pointer;
@@ -141,17 +104,10 @@
       border-radius: 8px 8px 0 0;
       margin-right: 10px;
     }
+    .tab.active { background-color: #2a2a2a; color: #fff; }
 
-    .tab.active {
-      background-color: #2a2a2a;
-      color: #fff;
-    }
-
-    /* --- SEARCH --- */
-    .search {
-      margin: 20px 0;
-    }
-
+    /* --- SEARCH / BUTTONS / TABLES --- */
+    .search { margin: 20px 0; }
     .search input {
       width: 250px;
       padding: 10px;
@@ -160,13 +116,7 @@
       background-color: #2b2b2b;
       color: #f1f1f1;
     }
-
-    /* --- BUTTON --- */
-    .actions {
-      text-align: right;
-      margin: 15px 0;
-    }
-
+    .actions { text-align: right; margin: 15px 0; }
     .btn {
       background-color: #0078ff;
       color: #fff;
@@ -175,19 +125,9 @@
       border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
-      transition: background-color 0.2s;
     }
-
-    .btn:hover {
-      background-color: #3399ff;
-    }
-
-    /* --- TABLE --- */
-    .table-container {
-      padding: 20px 0;
-      overflow-x: auto;
-    }
-
+    .btn:hover { background-color: #3399ff; }
+    .table-container { padding: 20px 0; overflow-x: auto; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -195,46 +135,24 @@
       border-radius: 10px;
       overflow: hidden;
     }
-
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-    }
-
+    th, td { padding: 12px 15px; text-align: left; }
     th {
       background-color: #2a2a2a;
       color: #ccc;
       font-size: 0.9rem;
     }
-
-    tr:nth-child(even) {
-      background-color: #181818;
-    }
-
-    tr:hover {
-      background-color: #242424;
-    }
-
-    a {
-      color: #3a82ff;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
+    tr:nth-child(even) { background-color: #181818; }
+    tr:hover { background-color: #242424; }
   </style>
 </head>
 
 <body>
-
   <!-- NAVBAR -->
   <div class="navbar">
     <div class="navbar-left">
       <img src="/images/StockSmartLogo.png" alt="StockSmart Logo">
       <span>StockSmart</span>
     </div>
-
     <div class="navbar-right">
       <div class="user-dropdown" id="userDropdown">
         user@company.com ▾
@@ -251,12 +169,16 @@
     <h1>Dashboard</h1>
 
     <div class="cards">
-      <div class="card"><h3>Supply below safety stock ⚠️</h3><div class="card-value">24 <small>items</small></div></div>
+      <div class="card">
+        <h3>Supply below minimum restock amount ⚠️</h3>
+        <div class="card-value" id="lowStockValue">Loading...</div>
+      </div>
       <div class="card"><h3>Overall supply inventory</h3><div class="card-value">5,123 <small>7% ▼</small></div></div>
       <div class="card"><h3>Warehouses Near Capacity ⚠️</h3><div class="card-value">2</div></div>
       <div class="card"><h3>Total Inventory Value</h3><div class="card-value">$1,200,000</div></div>
     </div>
 
+    <!-- TABS -->
     <div class="tabs">
       <div class="tab active">Restocking</div>
       <div class="tab">Warehouses</div>
@@ -264,87 +186,169 @@
       <div class="tab">All Stock</div>
     </div>
 
-    <div class="search">
-      <input type="text" placeholder="🔍 Search">
-    </div>
-
-    <div class="actions">
-      <button class="btn">New order</button>
-    </div>
-
-    <div class="table-container">
-      <table>
+    <!-- RESTOCK TABLE -->
+    <div class="table-container" id="restockSection">
+      <table id="restockTable">
         <thead>
-          <tr><th>Order</th><th>Reference number</th><th>Date shipped</th><th>Repeating</th></tr>
+          <tr>
+            <th>Restock ID</th>
+            <th>Item Restocked</th>
+            <th>Amount Ordered</th>
+            <th>Restock Date</th>
+            <th>Ordered By</th>
+          </tr>
         </thead>
-        <tbody>
-          <tr><td><a href="#">Shipment order A</a></td><td>123-1233849-12381239</td><td>09/11/2021</td><td style="color:#6eff6e;">On</td></tr>
-          <tr><td><a href="#">Shipment order B</a></td><td>932-1231234-23890283</td><td>29/10/2021</td><td style="color:#ff6666;">Off</td></tr>
-          <tr><td><a href="#">Shipment order C</a></td><td>854-2138534-38907534</td><td>22/10/2021</td><td style="color:#ff6666;">Off</td></tr>
-          <tr><td><a href="#">Shipment order D</a></td><td>584-1232356-38907434</td><td>15/10/2021</td><td style="color:#6eff6e;">On</td></tr>
-          <tr><td><a href="#">Shipment order E</a></td><td>898-3289724-64243785</td><td>12/10/2021</td><td style="color:#ff6666;">Off</td></tr>
-          <tr><td><a href="#">Shipment order F</a></td><td>859-3789048-58903745</td><td>03/10/2021</td><td style="color:#6eff6e;">On</td></tr>
-          <tr><td><a href="#">Shipment order G</a></td><td>090-3420430-02034258</td><td>01/09/2021</td><td style="color:#6eff6e;">On</td></tr>
+        <tbody id="restockTableBody">
+          <tr><td colspan="5" style="text-align:center;">Loading restock orders...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- WAREHOUSE TABLE -->
+    <div class="table-container" id="warehouseSection" style="display:none;">
+      <table id="warehouseTable">
+        <thead>
+          <tr>
+            <th>Warehouse ID</th>
+            <th>Location</th>
+            <th>Total Supply</th>
+            <th>Capacity</th>
+          </tr>
+        </thead>
+        <tbody id="warehouseTableBody">
+          <tr><td colspan="4" style="text-align:center;">Loading warehouses...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-    <script>
+  <script>
+    // ============================== LOAD RESTOCK ORDERS ==============================
+    async function loadRestockOrders() {
+      try {
+        const response = await fetch("/restocks");
+        const restocks = await response.json();
+        const body = document.getElementById("restockTableBody");
+        body.innerHTML = "";
+
+        if (!restocks.length) {
+          body.innerHTML = `<tr><td colspan="5" style="text-align:center;">No restock orders found.</td></tr>`;
+          return;
+        }
+
+        restocks.forEach(order => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${order.restockId}</td>
+            <td>${order.product?.productName || "Unknown Item"}</td>
+            <td>${order.amount}</td>
+            <td>${new Date(order.restockDate).toLocaleDateString()}</td>
+            <td>${order.orderedBy || "N/A"}</td>
+          `;
+          body.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Error loading restock orders:", error);
+        document.getElementById("restockTableBody").innerHTML =
+          `<tr><td colspan="5" style="text-align:center;color:red;">Error loading data</td></tr>`;
+      }
+    }
+
+    // ============================== LOAD WAREHOUSES ==============================
+    async function loadWarehouses() {
+      try {
+        const response = await fetch("/warehouses");
+        const warehouses = await response.json();
+        const body = document.getElementById("warehouseTableBody");
+        body.innerHTML = "";
+
+        if (!warehouses.length) {
+          body.innerHTML = `<tr><td colspan="4" style="text-align:center;">No warehouses found.</td></tr>`;
+          return;
+        }
+
+        warehouses.forEach(w => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${w.warehouseId}</td>
+            <td>${w.location}</td>
+            <td>${w.totalSupply}</td>
+            <td>${w.capacity || "N/A"}</td>
+          `;
+          body.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error loading warehouses:", err);
+        document.getElementById("warehouseTableBody").innerHTML =
+          `<tr><td colspan="4" style="text-align:center;color:red;">Error loading data</td></tr>`;
+      }
+    }
+
+    // ============================== LOW STOCK COUNT ==============================
+    async function loadLowStockCount() {
+      try {
+        const response = await fetch("/inventory/below-minimum");
+        const items = await response.json();
+        const count = items.length;
+        document.getElementById("lowStockValue").innerHTML = `${count} <small>items</small>`;
+      } catch (err) {
+        console.error("Error fetching low-stock count:", err);
+        document.getElementById("lowStockValue").innerHTML = `<span style="color:red;">Error</span>`;
+      }
+    }
+
+    // ============================== LOGIN CHECK ==============================
+    async function checkLogin() {
+      try {
+        const response = await fetch("/users/current-user");
+        if (!response.ok) return (window.location.href = "/Login");
+        const user = await response.json();
+        const userLabel = document.getElementById("userDropdown").firstChild;
+        userLabel.textContent = `${user.email} ▾`;
+      } catch {
+        window.location.href = "/Login";
+      }
+    }
+
+    // ============================== LOGOUT ==============================
+    async function logout() {
+      await fetch("/users/logout", { method: "POST" });
+      window.location.href = "/Login";
+    }
+
+    // ============================== INITIAL LOAD ==============================
+    checkLogin();
+    loadRestockOrders();
+    loadLowStockCount();
+
+    // ============================== DROPDOWN ==============================
     const dropdown = document.getElementById("userDropdown");
     const menu = document.getElementById("dropdownMenu");
-
-    // Function to toggle dropdown visibility
-    function toggleDropdown() {
-        menu.classList.toggle("show");
-    }
-
-    // Hide dropdown if clicking outside
+    dropdown.addEventListener("click", () => menu.classList.toggle("show"));
     window.addEventListener("click", (e) => {
-        if (!dropdown.contains(e.target)) {
-        menu.classList.remove("show");
-        }
+      if (!dropdown.contains(e.target)) menu.classList.remove("show");
     });
 
-    dropdown.addEventListener("click", toggleDropdown);
+    // ============================== TAB SWITCHING ==============================
+    const tabs = document.querySelectorAll(".tab");
+    const restockSection = document.getElementById("restockSection");
+    const warehouseSection = document.getElementById("warehouseSection");
 
-    //  Check if user is logged in
-    async function checkLogin() {
-        try {
-        const response = await fetch("/users/current-user");
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
 
-        if (!response.ok) {
-            //  Not logged in
-            window.location.href = "/Login";
-            return;
+        if (tab.textContent.includes("Warehouses")) {
+          restockSection.style.display = "none";
+          warehouseSection.style.display = "block";
+          loadWarehouses();
+        } else {
+          warehouseSection.style.display = "none";
+          restockSection.style.display = "block";
         }
-
-        //  Logged in
-        const user = await response.json();
-
-        // Update just the text content, not the whole HTML
-        const userLabel = dropdown.firstChild;
-        userLabel.textContent = `${user.email} ▾`;
-
-        } catch (err) {
-        console.error("Error verifying session:", err);
-        window.location.href = "/Login";
-        }
-    }
-
-    checkLogin();
-
-    //  Logout clears session on server
-    async function logout() {
-        try {
-        await fetch("/users/logout", { method: "POST" });
-        } catch (err) {
-        console.warn("Logout request failed:", err);
-        }
-        window.location.href = "/Login";
-    }
-    </script>
-
-
+      });
+    });
+  </script>
 </body>
 </html>

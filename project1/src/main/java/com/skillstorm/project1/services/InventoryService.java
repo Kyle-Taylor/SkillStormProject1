@@ -36,6 +36,18 @@ public class InventoryService {
     public Inventory getInventoryByWarehouseAndProduct(Long warehouseId, Long productId) {
         return inventoryRepository.findByWarehouse_WarehouseIdAndProduct_ProductId(warehouseId, productId);
     }
+    
+    public int getTotalStockByWarehouseId(Long warehouseId) {
+        return inventoryRepository.findByWarehouse_WarehouseId(warehouseId)
+                                .stream()
+                                .mapToInt(Inventory::getQuantity)
+                                .sum();
+    }
+
+    public List<Inventory> findBelowMinimumStock(){
+        return inventoryRepository.findByQuantityLessThanMinimumStock();
+    }
+
 
     public Inventory createInventory(Inventory inventory) {
         return inventoryRepository.save(inventory);

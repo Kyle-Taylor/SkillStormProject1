@@ -33,7 +33,6 @@ public class Product {
     @JsonIgnore
     private List<Inventory> inventory;
 
-    // Constructors
     public Product() {}
 
     public Product(String productName, double price, String category) {
