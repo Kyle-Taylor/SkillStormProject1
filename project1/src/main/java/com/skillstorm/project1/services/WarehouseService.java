@@ -40,6 +40,7 @@ public class WarehouseService {
 
         Map<String, Object> data = new HashMap<>();
         data.put("warehouseId", w.getWarehouseId());
+        data.put("name", w.getName());
         data.put("location", w.getLocation());
         data.put("totalSupply", numberFormat.format(total));
         data.put("capacity", numberFormat.format(w.getCapacity()));

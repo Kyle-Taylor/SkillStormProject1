@@ -143,6 +143,43 @@
     }
     tr:nth-child(even) { background-color: #181818; }
     tr:hover { background-color: #242424; }
+
+      .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  .modal-content {
+    position: relative;
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    width: 600px;
+  }
+  .close-btn {
+  position: relative;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  font-size: 1.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s ease, color 0.1s ease;
+  }
+
+  .close-btn:hover {
+    color: #ff6666;
+    transform: scale(1.15);
+  }
+
+
   </style>
 </head>
 
@@ -188,6 +225,9 @@
 
     <!-- RESTOCK TABLE -->
     <div class="table-container" id="restockSection">
+      <div class="actions">
+          <button class="btn" onclick="openRestockModal()">New Restock Order</button>
+      </div>
       <table id="restockTable">
         <thead>
           <tr>
@@ -209,7 +249,7 @@
       <table id="warehouseTable">
         <thead>
           <tr>
-            <th>Warehouse ID</th>
+            <th>Warehouse Name</th>
             <th>Location</th>
             <th>Total Supply</th>
             <th>Capacity</th>
@@ -221,6 +261,36 @@
       </table>
     </div>
   </div>
+
+    <!-- RESTOCK MODAL -->
+    <div id="restockModal" class="modal" onclick="closeModal(event)">
+      <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
+        <button class="close-btn" onclick="closeModal()" aria-label="Close">&times;</button>
+        <h2>Select Warehouses</h2>
+        <div id="warehouseList" style="margin-top:10px;">
+        </div>
+        <div style="text-align:right;margin-top:20px;">
+          <button id="nextStepBtn" class="btn" disabled>Next →</button>
+        </div>
+      </div>
+    </div>
+
+      <div id="toast" style="
+      display:none;
+      position:fixed;
+      bottom:25px;
+      right:25px;
+      background: blue;;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:6px;
+      box-shadow:0 2px 10px rgb(110, 110, 110);
+      font-size:0.9rem;
+      z-index:2000;
+    "></div>
+
+
+
 
   <script>
     // ============================== LOAD RESTOCK ORDERS ==============================
@@ -235,8 +305,9 @@
           body.innerHTML = `<tr><td colspan="5" style="text-align:center;">No restock orders found.</td></tr>`;
           return;
         }
+        const reversedRestocks = [...restocks].reverse();
 
-        restocks.forEach(order => {
+        reversedRestocks.forEach(order => {
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${order.restockId}</td>
@@ -270,7 +341,7 @@
         warehouses.forEach(w => {
           const row = document.createElement("tr");
           row.innerHTML = `
-            <td>${w.warehouseId}</td>
+            <td>${w.name}</td>
             <td>${w.location}</td>
             <td>${w.totalSupply}</td>
             <td>${w.capacity || "N/A"}</td>
@@ -298,11 +369,13 @@
     }
 
     // ============================== LOGIN CHECK ==============================
+    let currentUserEmail = null;
     async function checkLogin() {
       try {
         const response = await fetch("/users/current-user");
         if (!response.ok) return (window.location.href = "/Login");
         const user = await response.json();
+        currentUserEmail = user.email;
         const userLabel = document.getElementById("userDropdown").firstChild;
         userLabel.textContent = `${user.email} ▾`;
       } catch {
@@ -349,6 +422,200 @@
         }
       });
     });
+
+    // ============================== OPEN RESTOCK MODAL ==============================
+    async function openRestockModal() {
+      const modal = document.getElementById("restockModal");
+      const modalContent = document.getElementById("restockModalContent");
+      modal.style.display = "flex";
+
+      try {
+        const res = await fetch("/warehouses");
+        const warehouses = await res.json();
+
+        modalContent.innerHTML = `
+          <button id="closeModalBtn" style="
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ff4d4d;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+          ">&times;</button>
+
+          <h2 style="margin-top: 0;">Select Warehouses</h2>
+
+          <div style="margin-top:15px; overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
+              <thead>
+                <tr style="background-color:#2a2a2a;">
+                  <th style="padding:8px 10px; text-align:left;">Select</th>
+                  <th style="padding:8px 10px; text-align:left;">Warehouse Name</th>
+                  <th style="padding:8px 10px; text-align:left;">Location</th>
+                  <th style="padding:8px 10px; text-align:right;">Total Stock</th>
+                  <th style="padding:8px 10px; text-align:right;">Capacity</th>
+                </tr>
+              </thead>
+              <tbody id="warehouseList">
+                ${warehouses.map(w => `
+                  <tr style="border-bottom:1px solid #333;">
+                    <td style="padding:8px 10px;">
+                      <input type="checkbox" name="warehouse" value="${w.warehouseId}">
+                    </td>
+                    <td style="padding:8px 10px;">${w.name || "N/A"}</td>
+                    <td style="padding:8px 10px;">${w.location}</td>
+                    <td style="padding:8px 10px; text-align:right;">${w.totalSupply}</td>
+                    <td style="padding:8px 10px; text-align:right;">${w.capacity}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="text-align:right;margin-top:20px;">
+            <button id="nextStepBtn" class="btn" disabled>Next →</button>
+          </div>
+        `;
+
+        // Enable close button
+        document.getElementById("closeModalBtn").addEventListener("click", () => {
+          document.getElementById("restockModal").style.display = "none";
+        });
+
+        // Checkbox event handling
+        const list = document.getElementById("warehouseList");
+        const nextBtn = document.getElementById("nextStepBtn");
+
+        list.querySelectorAll("input[type='checkbox']").forEach(cb => {
+          cb.addEventListener("change", () => {
+            const anySelected = Array.from(list.querySelectorAll("input:checked")).length > 0;
+            nextBtn.disabled = !anySelected;
+          });
+        });
+
+        nextBtn.addEventListener("click", () => loadProductSelection());
+      } catch (err) {
+        console.error("Error loading warehouses:", err);
+        modalContent.innerHTML = `<p style="color:red;">Error loading warehouses.</p>`;
+      }
+    }
+
+
+  // ============================== STEP 2: SELECT PRODUCT ==============================
+    async function loadProductSelection() {
+    const modalContent = document.getElementById("restockModalContent");
+    const selectedWarehouses = Array.from(document.querySelectorAll("input[name='warehouse']:checked"))
+      .map(cb => cb.value);
+
+    const products = await (await fetch("/products")).json();
+
+    modalContent.innerHTML = `
+      <h2>Select Product</h2>
+      <select id="productSelect" style="margin-top:10px;width:100%;padding:8px;">
+        <option value="">-- Choose a product --</option>
+        ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
+      </select>
+
+      <div id="productDetails" style="margin-top:15px;color:#ddd;font-size:0.9rem;"></div>
+
+      <div style="text-align:right;margin-top:20px;">
+        <button id="backBtn" class="btn" style="background-color:#555;">← Back</button>
+        <button id="submitRestockBtn" class="btn" disabled>Submit</button>
+      </div>
+    `;
+
+    document.getElementById("backBtn").addEventListener("click", openRestockModal);
+
+    const productSelect = document.getElementById("productSelect");
+    const detailsDiv = document.getElementById("productDetails");
+    const submitBtn = document.getElementById("submitRestockBtn");
+
+    productSelect.addEventListener("change", async (e) => {
+      const productId = e.target.value;
+      detailsDiv.innerHTML = "";
+      submitBtn.disabled = true;
+      if (!productId) return;
+
+      try {
+        const res = await fetch(`/products/${productId}`);
+        const product = await res.json();
+
+        // Handle missing supplier object gracefully
+        const supplier = product.supplier
+          ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
+          : "Unknown Supplier";
+
+        // Render full details + input for amount
+        detailsDiv.innerHTML = `
+          <p><strong>Category:</strong> ${product.category || "N/A"}</p>
+          <p><strong>Price per unit:</strong> $${product.price.toFixed(2)}</p>
+          <p><strong>Supplier:</strong> ${supplier}</p>
+          <label style="display:block;margin-top:10px;">
+            <strong>Amount to Restock:</strong>
+            <input type="number" id="restockAmount" min="1"
+                  style="margin-left:8px;width:100px;padding:5px;background:#2a2a2a;color:#fff;border:none;border-radius:4px;">
+          </label>
+          <p style="margin-top:8px;">Total Cost: $<span id="totalCost">0.00</span></p>
+        `;
+
+        const price = product.price;
+        const amountInput = document.getElementById("restockAmount");
+        const totalCost = document.getElementById("totalCost");
+
+        amountInput.addEventListener("input", () => {
+          const amount = parseInt(amountInput.value || 0);
+          totalCost.textContent = (price * amount).toFixed(2);
+          submitBtn.disabled = amount <= 0;
+        });
+
+        submitBtn.onclick = async () => {
+          const amount = parseInt(amountInput.value);
+          if (amount <= 0) return showToast("Please enter a valid amount.");
+
+          for (const wId of selectedWarehouses) {
+            await fetch("/restocks/create_restock", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                warehouseId: wId,
+                productId: productId,
+                amount: amount,
+                orderedBy: currentUserEmail
+              })
+            });
+          }
+          showToast("Restock order(s) created successfully!");
+          closeModal();
+          loadRestockOrders();
+        };
+      } catch (err) {
+        console.error("Error loading product:", err);
+        detailsDiv.innerHTML = `<p style="color:red;">Error loading product details.</p>`;
+      }
+    });
+
+
+  }
+
+
+  // ============================== CLOSE MODAL ==============================
+  function closeModal(event) {
+    if (event && event.target.id !== "restockModal") return;
+    document.getElementById("restockModal").style.display = "none";
+  }
+
+
+  function showToast(message, duration = 2500) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
+  setTimeout(() => toast.style.display = "none", duration);
+  }
+
+
   </script>
 </body>
 </html>

@@ -31,6 +31,10 @@ public class Supplier {
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<RestockOrder> restockOrders;
+    
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Product> products;
 
     // Constructors
     public Supplier() {}
@@ -60,4 +64,12 @@ public class Supplier {
 
     public List<RestockOrder> getRestockOrders() { return restockOrders; }
     public void setRestockOrders(List<RestockOrder> restockOrders) { this.restockOrders = restockOrders; }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
 }

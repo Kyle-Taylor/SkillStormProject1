@@ -1,12 +1,15 @@
 package com.skillstorm.project1.conrollers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,4 +56,20 @@ public class RestockOrderController {
                     .build();
         }
     }
+
+    @PostMapping("/create_restock")
+    public ResponseEntity<RestockOrder> createRestockOrder(@RequestBody Map<String, Object> payload) {
+        try {
+            Long warehouseId = Long.valueOf(payload.get("warehouseId").toString());
+            Long productId = Long.valueOf(payload.get("productId").toString());
+            int amount = Integer.parseInt(payload.get("amount").toString());
+            String orderedBy = payload.get("orderedBy").toString();
+
+            RestockOrder created = restockService.createRestockOrder(warehouseId, productId, amount, orderedBy);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }

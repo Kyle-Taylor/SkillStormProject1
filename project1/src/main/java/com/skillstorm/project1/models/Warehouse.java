@@ -1,7 +1,15 @@
 package com.skillstorm.project1.models;
 
-import jakarta.persistence.*;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "warehouses")
@@ -19,6 +27,7 @@ public class Warehouse {
 
     @Column(nullable = false)
     private int capacity;
+
 
     @OneToMany(mappedBy = "warehouse", cascade = CascadeType.ALL)
     private List<Inventory> inventoryItems;
@@ -47,4 +56,5 @@ public class Warehouse {
 
     public List<Inventory> getInventoryItems() { return inventoryItems; }
     public void setInventoryItems(List<Inventory> inventoryItems) { this.inventoryItems = inventoryItems; }
+
 }
