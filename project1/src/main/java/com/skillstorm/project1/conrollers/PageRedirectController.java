@@ -8,28 +8,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public class PageRedirectController implements ErrorController{
+public class PageRedirectController implements ErrorController {
 
     @GetMapping({"/", "/LandingPage"})
     public String landingPage() {
-        return "redirect:/LandingPage.html";
+        return "forward:/LandingPage.html";
     }
 
     @GetMapping("/Login")
     public String loginPage() {
-        return "redirect:/LoginPage.html";
+        return "forward:/LoginPage.html";
     }
-       @RequestMapping("/error")
+
+    @RequestMapping("/Error")
     public String handleError() {
-        return "redirect:/ErrorPage.html";
+        return "forward:/ErrorPage.html";
     }
 
     @GetMapping("/Dashboard")
     public String dashboardPage(HttpSession session) {
         if (session.getAttribute("user") == null) {
-            return "redirect:/LoginPage.html"; //  not logged in
+            return "redirect:/Login";
         }
-        return "redirect:/Dashboard.html"; //  logged in
+        return "forward:/Dashboard/Dashboard.html";
     }
-
 }

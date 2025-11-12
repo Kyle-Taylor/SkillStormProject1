@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSmart | Dashboard</title>
+  <link rel="icon" type="image/png" href="/images/stocksmartlogowithbackground.png">
+  <link rel="stylesheet" href="/Dashboard/Dashboard.css">
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <img src="/images/StockSmartLogo.png" alt="StockSmart Logo">
+      <span>StockSmart</span>
+    </div>
+    <div class="navbar-right">
+      <div class="user-dropdown" id="userDropdown">
+        user@company.com ▾
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-item" onclick="window.location.href='/LandingPage'">Home</div>
+          <div class="dropdown-item" onclick="logout()">Logout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD CONTENT -->
+  <div class="dashboard">
+    <h1>Dashboard</h1>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Supply below minimum restock amount ⚠️</h3>
+        <div class="card-value" id="lowStockValue">Loading...</div>
+      </div>
+      <div class="card"><h3>Overall supply inventory</h3><div class="card-value">5,123</div></div>
+      <div class="card"><h3>Warehouses Near Capacity ⚠️</h3><div class="card-value">2(hardcode)</div></div>
+      <div class="card"><h3>Total Inventory Value</h3><div class="card-value">$1,200,000(hardcode)</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active">Restocking</div>
+      <div class="tab">Warehouses</div>
+      <div class="tab">Checkouts</div>
+      <div class="tab">All Stock</div>
+    </div>
+
+    <!-- RESTOCK TABLE -->
+    <div class="table-container" id="restockSection">
+      <div class="actions">
+          <button class="btn" onclick="openRestockModal()">New Restock Order</button>
+      </div>
+      <table id="restockTable">
+        <thead>
+          <tr>
+            <th>Restock ID</th>
+            <th>Item Restocked</th>
+            <th>Amount Ordered</th>
+            <th>Restock Date</th>
+            <th>Ordered By</th>
+          </tr>
+        </thead>
+        <tbody id="restockTableBody">
+          <tr><td colspan="5" style="text-align:center;">Loading restock orders...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- WAREHOUSE TABLE -->
+    <div class="table-container" id="warehouseSection" style="display:none;">
+      <table id="warehouseTable">
+        <thead>
+          <tr>
+            <th>Warehouse Name</th>
+            <th>Location</th>
+            <th>Total Supply</th>
+            <th>Capacity</th>
+          </tr>
+        </thead>
+        <tbody id="warehouseTableBody">
+          <tr><td colspan="4" style="text-align:center;">Loading warehouses...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESTOCK MODAL -->
+  <div id="restockModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
+      <button class="close-btn" onclick="closeModal()" aria-label="Close">&times;</button>
+      <h2>Select Warehouses</h2>
+      <div id="warehouseList" style="margin-top:10px;"></div>
+      <div style="text-align:right;margin-top:20px;">
+        <button id="nextStepBtn" class="btn" disabled>Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <script src="/Dashboard/Dashboard.js"></script>
+</body>
+</html>
