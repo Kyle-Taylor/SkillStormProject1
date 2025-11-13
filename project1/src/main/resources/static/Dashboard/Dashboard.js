@@ -59,6 +59,36 @@ async function loadWarehouses() {
       `<tr><td colspan="4" style="text-align:center;color:red;">Error loading data</td></tr>`;
   }
 }
+// ============================== LOAD CHECKOUTS ==============================
+async function loadCheckouts() {
+  try {
+    const response = await fetch("/checkouts");
+    const checkouts = await response.json();
+    const body = document.getElementById("checkoutTableBody");
+    body.innerHTML = "";
+
+    if (!checkouts.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center;">No checkouts found.</td></tr>`;
+      return;
+    }
+
+    checkouts.forEach(co => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${co.checkoutId}</td>
+        <td>${co.product?.productName || "Unknown Item"}</td>
+        <td>${co.amount}</td>
+        <td>${new Date(co.checkoutDate).toLocaleDateString()}</td>
+        <td>${co.userEmail || "N/A"}</td>
+      `;
+      body.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error loading checkouts:", err);
+    document.getElementById("checkoutTableBody").innerHTML =
+      `<tr><td colspan="5" style="text-align:center;color:red;">Error loading data</td></tr>`;
+  }
+} 
 
 // ============================== LOW STOCK COUNT ==============================
 async function loadLowStockCount() {
@@ -121,9 +151,15 @@ tabs.forEach(tab => {
       restockSection.style.display = "none";
       warehouseSection.style.display = "block";
       loadWarehouses();
-    } else {
+    } else if(tab.textContent.includes("Restock Orders")) {
       warehouseSection.style.display = "none";
       restockSection.style.display = "block";
+    }
+    else if(tab.textContent.includes("Checkouts")) {
+      warehouseSection.style.display = "none";
+      restockSection.style.display = "none";
+      document.getElementById("checkoutSection").style.display = "block";
+      loadCheckouts();
     }
   });
 });

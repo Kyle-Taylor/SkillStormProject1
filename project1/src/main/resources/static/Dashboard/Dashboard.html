@@ -94,6 +94,26 @@
 
     </div>
 
+        <!-- CHECKOUTS TABLE -->
+    <div class="table-container" id="checkoutSection" style="display: none;">
+      <div class="actions">
+          <button class="btn" onclick="openCheckoutModal()">New Checkout</button>
+      </div>
+      <table id="checkoutTable">
+        <thead>
+          <tr>
+            <th>Checkout ID</th>
+            <th>Item Checked Out</th>
+            <th>Amount Checked Out</th>
+            <th>Checkout Date</th>
+            <th>Checked Out By</th>
+          </tr>
+        </thead>
+        <tbody id="checkoutTableBody">
+          <tr><td colspan="5" style="text-align:center;">Loading checkouts...</td></tr>
+        </tbody>
+      </table>
+    </div>
 
   <!-- RESTOCK MODAL -->
   <div id="restockModal" class="modal" onclick="closeRestockModal(event)">
