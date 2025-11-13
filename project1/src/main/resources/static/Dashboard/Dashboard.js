@@ -141,6 +141,7 @@ window.addEventListener("click", (e) => {
 const tabs = document.querySelectorAll(".tab");
 const restockSection = document.getElementById("restockSection");
 const warehouseSection = document.getElementById("warehouseSection");
+const checkoutSection = document.getElementById("checkoutSection");
 
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
@@ -150,15 +151,18 @@ tabs.forEach(tab => {
     if (tab.textContent.includes("Warehouses")) {
       restockSection.style.display = "none";
       warehouseSection.style.display = "block";
+      checkoutSection.style.display = "none";
       loadWarehouses();
     } else if(tab.textContent.includes("Restock Orders")) {
       warehouseSection.style.display = "none";
       restockSection.style.display = "block";
+      checkoutSection.style.display = "none";
+      loadRestockOrders();
     }
     else if(tab.textContent.includes("Checkouts")) {
       warehouseSection.style.display = "none";
       restockSection.style.display = "none";
-      document.getElementById("checkoutSection").style.display = "block";
+      checkoutSection.style.display = "block";
       loadCheckouts();
     }
   });
