@@ -14,6 +14,8 @@ import com.skillstorm.project1.models.Warehouse;
 import com.skillstorm.project1.repositories.InventoryRepository;
 import com.skillstorm.project1.repositories.WarehouseRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class WarehouseService {
 
@@ -49,5 +51,25 @@ public class WarehouseService {
 
     return results;
 }
+//CREATE WAREHOUSE METHOD
+@Transactional
+public Warehouse createWarehouse(String name, String location, int capacity) {
+    Warehouse warehouse = new Warehouse();
+    warehouse.setName(name);
+    warehouse.setLocation(location);
+    warehouse.setCapacity(capacity);
+    return warehouseRepository.save(warehouse);
+}
+// DELETE WAREHOUSE METHOD
+@Transactional
+public void deleteWarehouse(Long warehouseId) {
+    if (!warehouseRepository.existsById(warehouseId)) {
+        throw new IllegalArgumentException("Invalid warehouse ID");
+    }
+    // First, delete associated inventory records
+    warehouseRepository.deleteById(warehouseId);
+    // Then, delete the warehouse
+    warehouseRepository.deleteById(warehouseId);
 
+}   
 }

@@ -71,6 +71,13 @@
 
     <!-- WAREHOUSE TABLE -->
     <div class="table-container" id="warehouseSection" style="display:none;">
+
+      <!-- ACTION BAR -->
+      <div class="actions">
+          <button class="btn" style="background-color: Red" onclick="openDeleteWarehouseModal()">Delete Warehouse</button>
+          <button class="btn" onclick="openCreateWarehouseModal()">New Warehouse</button>
+      </div>
+
       <table id="warehouseTable">
         <thead>
           <tr>
@@ -84,13 +91,14 @@
           <tr><td colspan="4" style="text-align:center;">Loading warehouses...</td></tr>
         </tbody>
       </table>
+
     </div>
-  </div>
+
 
   <!-- RESTOCK MODAL -->
-  <div id="restockModal" class="modal" onclick="closeModal(event)">
+  <div id="restockModal" class="modal" onclick="closeRestockModal(event)">
     <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
-      <button class="close-btn" onclick="closeModal()" aria-label="Close">&times;</button>
+      <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
       <h2>Select Warehouses</h2>
       <div id="warehouseList" style="margin-top:10px;"></div>
       <div style="text-align:right;margin-top:20px;">
@@ -99,6 +107,109 @@
     </div>
   </div>
 
+  <!-- Create Warehouse MODAL -->
+  <div id="createWarehouseModal" class="modal" style="display:none;">
+    <div class="modal-content" id="createWarehouseContent">
+
+      <button id="closeWarehouseModalBtn" class="close-btn" aria-label="Close">&times;</button>
+      <h2 style="margin-bottom: 10px;">Create New Warehouse</h2>
+
+      <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem; margin-top:10px;">
+        <tbody>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Name</td>
+            <td style="padding:8px 6px;">
+              <input type="text" id="warehouseNameInput"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+                placeholder="Ex: Main Storage A1">
+            </td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Location</td>
+            <td style="padding:8px 6px;">
+              <input type="text" id="warehouseLocationInput"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+                placeholder="Ex: Dallas, TX">
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Capacity</td>
+            <td style="padding:8px 6px;">
+              <input type="number" id="warehouseCapacityInput" min="0"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+                placeholder="Ex: 5000">
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <div style="text-align:right;margin-top:20px;">
+        <button id="submitWarehouseBtn" class="btn" style="padding:10px 22px;">Create Warehouse</button>
+      </div>
+
+    </div>
+  </div>
+
+  
+  <!-- DELETE WAREHOUSE MODAL -->
+<div id="deleteWarehouseModal" class="modal" style="display:none;">
+  <div class="modal-content" id="deleteWarehouseModalContent" onclick="event.stopPropagation();">
+
+    <button class="close-btn" onclick="closeDeleteWarehouseModal()" aria-label="Close">&times;</button>
+    <h2>Select Warehouse(s) to Delete</h2>
+
+    <div id="deleteWarehouseList"
+        style="margin-top:15px; max-height:400px; overflow-y:auto; border:1px solid #333; padding:10px; border-radius:6px;">
+      Loading warehouses...
+    </div>
+
+    <div style="text-align:right;margin-top:20px;">
+      <button id="submitDeleteWarehouseBtn" class="btn" style="background-color:#ff4d4d;" disabled>
+        Delete Selected
+      </button>
+    </div>
+
+    <div id="confirmOverlay"
+         style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.7); z-index:20;">
+    </div>
+
+    <!-- CONFIRM POPUP -->
+    <div id="confirmDeleteBox"
+         style="
+            display:none;
+            position:absolute;
+            top:50%; left:50%;
+            transform:translate(-50%, -50%);
+            background:#6b0000;
+            padding:20px;
+            border-radius:8px;
+            width:320px;
+            border:1px solid #444;
+            z-index:30;
+         ">
+
+      <p style="margin-bottom:20px; color:#ddd; font-size:1rem; text-align:center;">
+        Are you sure you want to delete the selected warehouse(s)?
+        <br> <br>
+        This action will remove all associated inventory!
+      </p>
+
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="confirmYesBtn" class="btn" style="background:#ff4d4d;">Yes</button>
+        <button id="confirmNoBtn" class="btn" style="background:#444;">No</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+  
   <!-- TOAST -->
   <div id="toast"></div>
 

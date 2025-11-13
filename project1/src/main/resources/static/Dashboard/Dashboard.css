@@ -108,7 +108,14 @@ body {
   background-color: #2b2b2b;
   color: #f1f1f1;
 }
-.actions { text-align: right; margin: 15px 0; }
+.actions {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 15px;}
+
+
 .btn {
   background-color: #0078ff;
   color: #fff;
@@ -118,7 +125,8 @@ body {
   cursor: pointer;
   font-weight: bold;
 }
-.btn:hover { background-color: #3399ff; }
+
+.deleteBtn:hover { background-color: #ff6666; }
 
 .table-container { padding: 20px 0; overflow-x: auto; }
 table {

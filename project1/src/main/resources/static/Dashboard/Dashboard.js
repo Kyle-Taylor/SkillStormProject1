@@ -202,7 +202,7 @@ async function loadProductSelection() {
     modalContent.innerHTML = `
       <button id="backBtn" class="btn" style="background-color:#555;">← Back</button>
       <h2 style="display:inline-block; margin-left:10px;">Select Product</h2>
-
+      <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
       <select id="productSelect" style="margin-top:10px;width:100%;padding:8px;">
         <option value="">-- Choose a product --</option>
         ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
@@ -236,15 +236,42 @@ async function loadProductSelection() {
           : "Unknown Supplier";
 
         detailsDiv.innerHTML = `
-          <p><strong>Category:</strong> ${product.category || "N/A"}</p>
-          <p><strong>Price per unit:</strong> $${(+product.price).toFixed(2)}</p>
-          <p><strong>Supplier:</strong> ${supplier}</p>
-          <label style="display:block;margin-top:10px;">
-            <strong>Amount to Restock:</strong>
-            <input type="number" id="restockAmount" min="1"
-                  style="margin-left:8px;width:100px;padding:5px;background:#2a2a2a;color:#fff;border:none;border-radius:4px;">
-          </label>
-          <p style="margin-top:8px;">Total Cost: $<span id="totalCost">0.00</span></p>
+          <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
+          <tbody>
+
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 6px; width:140px; font-weight:600;">Category</td>
+              <td style="padding:8px 6px;">${product.category || "N/A"}</td>
+            </tr>
+
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 6px; font-weight:600;">Price per Unit</td>
+              <td style="padding:8px 6px;">$${(+product.price).toFixed(2)}</td>
+            </tr>
+
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 6px; font-weight:600;">Supplier</td>
+              <td style="padding:8px 6px;">${supplier}</td>
+            </tr>
+
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 6px; font-weight:600;">Amount to Restock</td>
+              <td style="padding:8px 6px;">
+                <input type="number" id="restockAmount" min="1"
+                  style="width:120px;padding:6px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;">
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:8px 6px; font-weight:600;">Total Cost</td>
+              <td style="padding:8px 6px;">
+                $<span id="totalCost">0.00</span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+
         `;
 
         const price = +product.price;
@@ -275,7 +302,7 @@ async function loadProductSelection() {
               });
             }
             showToast("Restock order(s) created successfully!");
-            closeModal();
+            closeRestockModal();
             loadRestockOrders();
           } catch (postErr) {
             console.error("Error creating restock:", postErr);
@@ -294,7 +321,7 @@ async function loadProductSelection() {
 }
 
 // ============================== CLOSE MODAL ==============================
-function closeModal(event) {
+function closeRestockModal(event) {
   if (event && event.target && event.target.id !== "restockModal") {
     return;
   }
@@ -310,4 +337,181 @@ function showToast(message, duration = 2500) {
 }
 
 // Allow clicking dark backdrop to close modal
-document.getElementById("restockModal").addEventListener("click", (e) => closeModal(e));
+document.getElementById("restockModal").addEventListener("click", (e) => closeRestockModal(e));
+
+
+
+// ============================== OPEN WAREHOUSE MODAL ==============================
+function openCreateWarehouseModal() {
+  document.getElementById("createWarehouseModal").style.display = "flex";
+}
+
+// ============================== CLOSE WAREHOUSE MODAL ==============================
+document.getElementById("closeWarehouseModalBtn").addEventListener("click", () => {
+  document.getElementById("createWarehouseModal").style.display = "none";
+});
+
+document.getElementById("createWarehouseModal").addEventListener("click", (e) => {
+  if (e.target.id === "createWarehouseModal") {
+    document.getElementById("createWarehouseModal").style.display = "none";
+  }
+});
+
+// ============================== SUBMIT NEW WAREHOUSE ==============================
+document.getElementById("submitWarehouseBtn").addEventListener("click", async () => {
+  const name = document.getElementById("warehouseNameInput").value.trim();
+  const location = document.getElementById("warehouseLocationInput").value.trim();
+  const capacity = Number(document.getElementById("warehouseCapacityInput").value);
+
+  if (!name || !location || isNaN(capacity)) {
+    showToast("Please fill out all fields.");
+    return;
+  }
+
+  try {
+    const response = await fetch("/warehouses/create_warehouse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, location, capacity })
+    });
+
+    if (response.ok) {
+      showToast("Warehouse created successfully!");
+      document.getElementById("createWarehouseModal").style.display = "none";
+      loadWarehouses();
+    } else {
+      showToast("Failed to create warehouse.");
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error creating warehouse.");
+  }
+});
+
+// ============================== DELETE WAREHOUSE SECTION ==============================
+function openDeleteWarehouseModal() {
+    document.getElementById("deleteWarehouseModal").style.display = "flex";
+    loadDeleteWarehouseList();
+}
+// ============================== LOAD DELETE WAREHOUSE LIST ==============================
+async function loadDeleteWarehouseList() {
+    const list = document.getElementById("deleteWarehouseList");
+    list.innerHTML = "Loading...";
+
+    try {
+        const response = await fetch("/warehouses");
+        const warehouses = await response.json();
+
+        if (!warehouses.length) {
+            list.innerHTML = "<p>No warehouses available.</p>";
+            return;
+        }
+
+        list.innerHTML = `
+            <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
+                <thead>
+                    <tr style="border-bottom:1px solid #333; text-align:left;">
+                        <th style="padding:8px;">Select</th>
+                        <th style="padding:8px;">Warehouse Name</th>
+                        <th style="padding:8px;">Location</th>
+                        <th style="padding:8px;">Total Stock</th>
+                        <th style="padding:8px;">Capacity</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${warehouses.map(w => `
+                        <tr style="border-bottom:1px solid #2a2a2a;">
+                            <td style="padding:8px; width:60px;">
+                                <input type="checkbox" 
+                                      name="deleteWarehouse" 
+                                      value="${w.warehouseId}">
+                            </td>
+
+                            <td style="padding:8px;">${w.name}</td>
+                            <td style="padding:8px;">${w.location}</td>
+
+                            <td style="padding:8px;">
+                                ${w.totalSupply ?? "0"}
+                            </td>
+
+                            <td style="padding:8px;">
+                                ${w.capacity ?? "N/A"}
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+
+        // Enable button when something is checked
+        document.querySelectorAll("input[name='deleteWarehouse']").forEach(cb => {
+            cb.addEventListener("change", () => {
+                document.getElementById("submitDeleteWarehouseBtn").disabled =
+                    document.querySelectorAll("input[name='deleteWarehouse']:checked").length === 0;
+            });
+        });
+
+    } catch (err) {
+        console.error("Error loading delete warehouse list:", err);
+        list.innerHTML = "<p>Error loading warehouses.</p>";
+    }
+}
+
+
+// ============================== SUBMIT DELETE WAREHOUSES ==============================
+document.getElementById("submitDeleteWarehouseBtn").addEventListener("click", () => {
+    const selected = document.querySelectorAll("input[name='deleteWarehouse']:checked");
+
+    if (selected.length === 0) {
+        showToast("Please select at least one warehouse to delete.");
+        return;
+    }
+
+    document.getElementById("confirmOverlay").style.display = "block";
+    document.getElementById("confirmDeleteBox").style.display = "block";
+});
+
+document.getElementById("confirmNoBtn").addEventListener("click", () => {
+    document.getElementById("confirmOverlay").style.display = "none";
+    document.getElementById("confirmDeleteBox").style.display = "none";
+});
+
+document.getElementById("confirmYesBtn").addEventListener("click", async () => {
+    const selectedWarehouses = Array.from(
+        document.querySelectorAll("input[name='deleteWarehouse']:checked")
+    ).map(cb => cb.value);
+
+    try {
+        for (const wId of selectedWarehouses) {
+            await fetch(`/warehouses/delete_warehouse/${wId}`, { method: "DELETE" });
+        }
+
+        showToast("Selected warehouse(s) deleted successfully!");
+
+        document.getElementById("confirmOverlay").style.display = "none";
+        document.getElementById("confirmDeleteBox").style.display = "none";
+        document.getElementById("deleteWarehouseModal").style.display = "none";
+
+        loadWarehouses();
+
+    } catch (err) {
+        console.error("Delete error:", err);
+        showToast("Error deleting warehouse(s).", 3000);
+    }
+});
+
+
+
+
+// ============================== CLOSE DELETE WAREHOUSE MODAL ==============================
+function closeDeleteWarehouseModal(event) {
+    if (event && event.target && event.target.id !== "deleteWarehouseModal") {
+        return;
+    }
+    document.getElementById("deleteWarehouseModal").style.display = "none";
+}
+
+// Allow clicking dark backdrop to close delete warehouse modal
+document.getElementById("deleteWarehouseModal").addEventListener("click", (e) => closeDeleteWarehouseModal(e));
