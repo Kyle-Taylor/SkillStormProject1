@@ -43,8 +43,8 @@
     <!-- TABS -->
     <div class="tabs">
       <div class="tab active">Restock Orders</div>
-      <div class="tab">Warehouses</div>
       <div class="tab">Checkouts</div>
+      <div class="tab">Warehouses</div>
       <div class="tab">All Stock</div>
     </div>
 
@@ -85,6 +85,7 @@
             <th>Location</th>
             <th>Total Supply</th>
             <th>Capacity</th>
+            <th>Edit Warehouse</th>
           </tr>
         </thead>
         <tbody id="warehouseTableBody">
@@ -163,7 +164,6 @@
                 placeholder="Ex: 5000">
             </td>
           </tr>
-
         </tbody>
       </table>
 
@@ -173,6 +173,50 @@
 
     </div>
   </div>
+
+  <!-- EDIT WAREHOUSE MODAL -->
+  <div id="editWarehouseModal" class="modal" style="display:none;">
+  <div class="modal-content" id="editWarehouseModalContent" onclick="event.stopPropagation();">
+    <button class="close-btn" onclick="closeEditWarehouseModal()" aria-label="Close">&times;</button>
+    <h2>Edit Warehouse</h2>
+    <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd;">
+      <tbody>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:8px 6px; width:140px; font-weight:600;">Name</td>
+          <td style="padding:8px 6px;">
+            <input id="editWarehouseName"
+                   class="modal-input"
+                   type="text"
+                   style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:8px 6px; font-weight:600;">Location</td>
+          <td style="padding:8px 6px;">
+            <input id="editWarehouseLocation"
+                   class="modal-input"
+                   type="text"
+                   style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:8px 6px; font-weight:600;">Capacity</td>
+          <td style="padding:8px 6px;">
+            <input id="editWarehouseCapacity"
+                   class="modal-input"
+                   type="number"
+                   style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="text-align:right; margin-top:20px;">
+      <button id="submitEditWarehouseBtn" class="btn">Save Changes</button>
+    </div>
+
+  </div>
+</div>
+
 
   
   <!-- DELETE WAREHOUSE MODAL -->
@@ -228,6 +272,11 @@
   </div>
 </div>
 
+<!-- CHECKOUT MODAL -->
+<div id="checkoutModal" class="modal" style="display:none;" onclick="closeCheckoutModal(event)">
+  <div class="modal-content" id="checkoutModalContent" onclick="event.stopPropagation();">
+  </div>
+</div>
 
   
   <!-- TOAST -->

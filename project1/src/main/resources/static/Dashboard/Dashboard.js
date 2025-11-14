@@ -1,3 +1,5 @@
+const URL = "http://localhost:8080";
+
 // ============================== LOAD RESTOCK ORDERS ==============================
 async function loadRestockOrders() {
   try {
@@ -50,6 +52,8 @@ async function loadWarehouses() {
         <td>${w.location}</td>
         <td>${w.totalSupply}</td>
         <td>${w.capacity || "N/A"}</td>
+        <td><button class="btn" style="padding:6px 12px;" onclick="openEditWarehouseModal(${w.warehouseId}, '${w.name}', '${w.location}', ${w.capacity})">Edit</button>
+  </td>
       `;
       body.appendChild(row);
     });
@@ -59,6 +63,60 @@ async function loadWarehouses() {
       `<tr><td colspan="4" style="text-align:center;color:red;">Error loading data</td></tr>`;
   }
 }
+
+// ============================== EDIT WAREHOUSE SECTION ==============================
+let editingWarehouseId = null;
+
+function openEditWarehouseModal(id, name, location, capacity) {
+  editingWarehouseId = id;
+
+  document.getElementById("editWarehouseName").value = name;
+  document.getElementById("editWarehouseLocation").value = location;
+  document.getElementById("editWarehouseCapacity").value = capacity;
+
+  document.getElementById("editWarehouseModal").style.display = "flex";
+}
+
+function closeEditWarehouseModal() {
+  document.getElementById("editWarehouseModal").style.display = "none";
+}
+
+document.getElementById("editWarehouseModal").addEventListener("click", (e) => {
+  if (e.target.id === "editWarehouseModal") {
+    closeEditWarehouseModal();
+  }
+});
+
+document.getElementById("submitEditWarehouseBtn").addEventListener("click", async () => {
+  const name = document.getElementById("editWarehouseName").value.trim();
+  const location = document.getElementById("editWarehouseLocation").value.trim();
+  const capacity = Number(document.getElementById("editWarehouseCapacity").value);
+
+  if (!name || !location || isNaN(capacity)) {
+    showToast("Please fill out all fields.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/warehouses/edit_warehouse/${editingWarehouseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, location, capacity })
+    });
+
+    if (response.ok) {
+      showToast("Warehouse updated successfully!");
+      closeEditWarehouseModal();
+      loadWarehouses();
+    } else {
+      showToast("Failed to update warehouse.", 3000);
+    }
+  } catch (err) {
+    console.error("Error updating warehouse:", err);
+    showToast("Error updating warehouse.", 3000);
+  }
+});
+
 // ============================== LOAD CHECKOUTS ==============================
 async function loadCheckouts() {
   try {
@@ -555,3 +613,226 @@ function closeDeleteWarehouseModal(event) {
 
 // Allow clicking dark backdrop to close delete warehouse modal
 document.getElementById("deleteWarehouseModal").addEventListener("click", (e) => closeDeleteWarehouseModal(e));
+
+
+
+// ============================== CHECKOUT MODAL SECTION ==============================
+async function openCheckoutModal() {
+  const modal = document.getElementById("checkoutModal");
+  const modalContent = document.getElementById("checkoutModalContent");
+  modal.style.display = "flex";
+
+        const res = await fetch("/products");
+        const products = await res.json();
+        const wRes = await fetch("/warehouses");
+        const warehouses = await wRes.json();
+
+        modalContent.innerHTML = `
+          <button id="closeCheckoutModalBtn" class="close-btn" aria-label="Close">&times;</button>
+          
+          <h2>Select Warehouse</h2>
+          <select id="checkoutWarehouseSelect" style="margin-top:10px;width:100%;padding:8px;">
+              <option value="">-- Choose a warehouse --</option>
+              ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
+          </select>
+
+          <h2 style="margin-top:20px;">Select Product to Checkout</h2>
+          <select id="checkoutProductSelect" style="margin-top:10px;width:100%;padding:8px;">
+              <option value="">-- Choose a product --</option>
+              ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
+          </select>
+
+          <div id="checkoutProductDetails" style="margin-top:15px;color:#ddd;font-size:0.9rem;"></div>
+
+          <div style="text-align:right;margin-top:20px;">
+              <button id="submitCheckoutBtn" class="btn" disabled onClick="checkoutItem(${p.productId})">Submit Checkout</button>
+          </div>
+          `;
+
+          
+        document.getElementById("closeCheckoutModalBtn").addEventListener("click", () => {
+            document.getElementById("checkoutModal").style.display = "none";
+        });
+      }
+// ============================== CHECKOUT MODAL SECTION ==============================
+async function openCheckoutModal() {
+  const modal = document.getElementById("checkoutModal");
+  const modalContent = document.getElementById("checkoutModalContent");
+  modal.style.display = "flex";
+
+  const products = await (await fetch("/products")).json();
+  const warehouses = await (await fetch("/warehouses")).json();
+
+  // Build modal UI
+  modalContent.innerHTML = `
+    <button id="closeCheckoutModalBtn" class="close-btn" aria-label="Close">&times;</button>
+
+    <h2>Select Warehouse</h2>
+    <select id="checkoutWarehouseSelect" style="margin-top:10px;width:100%;padding:8px;">
+      <option value="">-- Choose a warehouse --</option>
+      ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
+    </select>
+
+    <h2 style="margin-top:20px;">Select Product</h2>
+    <select id="checkoutProductSelect" style="margin-top:10px;width:100%;padding:8px;">
+      <option value="">-- Choose a product --</option>
+      ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
+    </select>
+
+    <div id="checkoutProductDetails" style="margin-top:20px;color:#ddd;font-size:0.9rem;"></div>
+
+    <div id="amountContainer" style="margin-top:20px; display:none;">
+      <label style="display:block;">Amount to Checkout:</label>
+      <input type="number" id="checkoutAmount" min="1"
+        style="width:120px;padding:6px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;">
+    </div>
+
+    <div style="text-align:right;margin-top:25px;">
+      <button id="submitCheckoutBtn" class="btn" disabled>Submit Checkout</button>
+    </div>
+  `;
+
+  document.getElementById("closeCheckoutModalBtn").addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Field references
+  const warehouseSelect = document.getElementById("checkoutWarehouseSelect");
+  const productSelect = document.getElementById("checkoutProductSelect");
+  const amountInput = document.getElementById("checkoutAmount");
+  const amountContainer = document.getElementById("amountContainer");
+  const detailsDiv = document.getElementById("checkoutProductDetails");
+  const submitBtn = document.getElementById("submitCheckoutBtn");
+
+  // Enable submit button when all inputs are valid
+  function updateSubmitState() {
+    const warehouseId = warehouseSelect.value;
+    const productId = productSelect.value;
+    const amount = parseInt(amountInput.value || 0);
+
+    submitBtn.disabled = !(warehouseId && productId && amount > 0);
+  }
+
+  warehouseSelect.addEventListener("change", updateSubmitState);
+  amountInput.addEventListener("input", updateSubmitState);
+
+  // When the user selects a product
+  productSelect.addEventListener("change", async (e) => {
+    const productId = e.target.value;
+    amountContainer.style.display = "none";
+    detailsDiv.innerHTML = "";
+    submitBtn.disabled = true;
+
+    if (!productId) return;
+
+    const product = await (await fetch(`/products/${productId}`)).json();
+
+    const supplier = product.supplier
+      ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
+      : "Unknown Supplier";
+
+    // Build details UI (same style as restock modal)
+    detailsDiv.innerHTML = `
+      <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
+        <tbody>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Product Name</td>
+            <td style="padding:8px 6px;">${product.productName}</td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Category</td>
+            <td style="padding:8px 6px;">${product.category}</td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Price</td>
+            <td style="padding:8px 6px;">$${(+product.price).toFixed(2)}</td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Supplier</td>
+            <td style="padding:8px 6px;">${supplier}</td>
+          </tr>
+
+        </tbody>
+      </table>
+    `;
+
+    amountContainer.style.display = "block";
+    updateSubmitState();
+  });
+
+  // Submit checkout
+  submitBtn.addEventListener("click", submitCheckout);
+}
+
+
+// ============================== CLOSE CHECKOUT MODAL ==============================
+function closeCheckoutModal(event) {
+  if (event && event.target && event.target.id !== "checkoutModal") {
+    return;
+  }
+  document.getElementById("checkoutModal").style.display = "none";
+}
+
+// Allow clicking backdrop to close modal
+document.getElementById("checkoutModal").addEventListener("click", (e) => closeCheckoutModal(e));
+
+// submit checkout function
+async function submitCheckout() {
+  const warehouseId = document.getElementById("checkoutWarehouseSelect").value;
+  const productId = document.getElementById("checkoutProductSelect").value;
+  const amount = parseInt(document.getElementById("checkoutAmount").value, 10);
+  const email = currentUserEmail;
+
+  try {
+    const response = await fetch(URL + "/checkouts/create_checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        warehouseId,
+        productId,
+        amount,
+        email
+      })
+    });
+
+    if (response.ok) {
+      await reduceInventory(warehouseId, productId, amount);
+      showToast("Checkout successfull!");
+      document.getElementById("checkoutModal").style.display = "none";
+      loadCheckouts();
+    } else {
+      showToast("Checkout failed.", 3000);
+    }
+  } catch (err) {
+    console.error("Checkout Error:", err);
+    showToast("Error creating checkout.", 3000);
+  }
+}
+
+async function reduceInventory(warehouseId, productId, amount) {
+  try {
+    const response = await fetch("/inventory/reduce", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        warehouseId,
+        productId,
+        amount
+      })
+    });
+
+    if (response.ok) {
+      showToast("Inventory updated successfully!");
+    } else {
+      showToast("Failed to update inventory.");
+    }
+
+  } catch (err) {
+    console.error("Error updating inventory:", err);
+    showToast("Error updating inventory.", 3000);
+  }
+}

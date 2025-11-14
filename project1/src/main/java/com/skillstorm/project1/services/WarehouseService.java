@@ -29,7 +29,7 @@ public class WarehouseService {
 
 
     public List<Map<String, Object>> findAllWarehousesWithTotals() {
-    List<Warehouse> warehouses = warehouseRepository.findAll();
+    List<Warehouse> warehouses = warehouseRepository.findAllByOrderByNameAsc();
     List<Inventory> inventory = inventoryRepository.findAll();
     List<Map<String, Object>> results = new ArrayList<>();
     NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
@@ -70,6 +70,18 @@ public void deleteWarehouse(Long warehouseId) {
     warehouseRepository.deleteById(warehouseId);
     // Then, delete the warehouse
     warehouseRepository.deleteById(warehouseId);
+}
 
-}   
+// EDIT WAREHOUSE METHOD
+@Transactional
+public Warehouse editWarehouse(Long warehouseId, String name, String location, int capacity) {
+    Warehouse warehouse = warehouseRepository.findById(warehouseId)
+            .orElseThrow(() -> new IllegalArgumentException("Warehouse not found with ID " + warehouseId));
+
+    warehouse.setName(name);
+    warehouse.setLocation(location);
+    warehouse.setCapacity(capacity);
+
+    return warehouseRepository.save(warehouse);
+}
 }

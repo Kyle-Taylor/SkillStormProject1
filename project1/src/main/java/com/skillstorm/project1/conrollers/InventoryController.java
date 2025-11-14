@@ -1,6 +1,7 @@
 package com.skillstorm.project1.conrollers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -131,20 +132,16 @@ public class InventoryController {
     // ==============================================
     // UPDATE INVENTORY RECORD
     // ==============================================
-    @PutMapping("/{id}")
-    public ResponseEntity<Inventory> updateInventory(@PathVariable Long id, @RequestBody Inventory updated) {
-        try {
-            Inventory result = inventoryService.updateInventory(id, updated);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .header("Error", e.getMessage())
-                    .build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .header("Error", "Error updating inventory record.")
-                    .build();
-        }
+    @PutMapping("/reduce")
+    public ResponseEntity<Void> reduceInventory(@RequestBody Map<String, Object> payload) {
+
+        Long warehouseId = Long.valueOf(payload.get("warehouseId").toString());
+        Long productId   = Long.valueOf(payload.get("productId").toString());
+        int amount       = Integer.parseInt(payload.get("amount").toString());
+
+        inventoryService.reduceInventory(warehouseId, productId, amount);
+
+        return ResponseEntity.ok().build();
     }
 
     // ==============================================

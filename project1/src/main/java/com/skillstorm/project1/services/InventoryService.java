@@ -53,16 +53,16 @@ public class InventoryService {
         return inventoryRepository.save(inventory);
     }
 
-    public Inventory updateInventory(Long id, Inventory updatedInventory) {
-        return inventoryRepository.findById(id)
-                .map(existing -> {
-                    existing.setQuantity(updatedInventory.getQuantity());
-                    existing.setWarehouse(updatedInventory.getWarehouse());
-                    existing.setProduct(updatedInventory.getProduct());
-                    return inventoryRepository.save(existing);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("Inventory not found with ID " + id));
+    public void reduceInventory(Long warehouseId, Long productId, int amount) {
+    Inventory inv = inventoryRepository.findByWarehouse_WarehouseIdAndProduct_ProductId(warehouseId, productId);
+    if (inv == null) {
+        throw new IllegalArgumentException("Inventory record not found for the given warehouse and product IDs.");
     }
+
+    inv.setQuantity(inv.getQuantity() - amount);
+    inventoryRepository.save(inv);
+}
+
 
     public void deleteInventory(Long id) {
         if (!inventoryRepository.existsById(id)) {
