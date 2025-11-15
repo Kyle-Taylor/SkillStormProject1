@@ -47,6 +47,8 @@ async function loadWarehouses() {
 
     warehouses.forEach(w => {
       const row = document.createElement("tr");
+      row.setAttribute("onclick", `openWarehouseInventoryModal(${w.warehouseId}, '${w.name}')`);
+      row.classList.add("clickable-row");
       row.innerHTML = `
         <td>${w.name}</td>
         <td>${w.location}</td>
@@ -439,12 +441,12 @@ document.getElementById("restockModal").addEventListener("click", (e) => closeRe
 
 
 
-// ============================== OPEN WAREHOUSE MODAL ==============================
+// ============================== OPEN CREATE WAREHOUSE MODAL ==============================
 function openCreateWarehouseModal() {
   document.getElementById("createWarehouseModal").style.display = "flex";
 }
 
-// ============================== CLOSE WAREHOUSE MODAL ==============================
+// ============================== CLOSE CREATE WAREHOUSE MODAL ==============================
 document.getElementById("closeWarehouseModalBtn").addEventListener("click", () => {
   document.getElementById("createWarehouseModal").style.display = "none";
 });
@@ -556,7 +558,68 @@ async function loadDeleteWarehouseList() {
         list.innerHTML = "<p>Error loading warehouses.</p>";
     }
 }
+// ============================== WAREHOUSE INVENTORY SECTION ==============================
+function openWarehouseInventoryModal(warehouseId, warehouseName) {
+  document.getElementById("WarehouseInventoryModal").style.display = "flex";
+  loadInventoryForWarehouse(warehouseId, warehouseName);
+}
+function closeWarehouseInventoryModal(event) {
+    if (event && event.target && event.target.id !== "WarehouseInventoryModal") {
+        return;
+    }
+    document.getElementById("WarehouseInventoryModal").style.display = "none";
+}
 
+async function loadInventoryForWarehouse(warehouseId, warehouseName) {
+    try {
+    document.getElementById("warehouseInventoryTitle").textContent =
+    `${warehouseName} Inventory`;
+    const response = await fetch(`/inventory/warehouse/${warehouseId}`);
+    const inventory = await response.json();
+    const body = document.getElementById("warehouseInventoryTableBody");
+    body.innerHTML = "";
+
+    if (!inventory.length) {
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center;">No inventory found.</td></tr>`;
+      return;
+    }
+  
+    inventory.forEach(i => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${i.product.productName}</td>
+        <td>${i.quantity}</td>
+        <td>${i.product.price}</td>
+        <td>${i.product.category || "N/A"}</td>
+        <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
+        <td>${i.minimumStock}</td>
+        <td><button class="btn" style="padding:6px 12px;" onclick="openTransferInventoryModal(${warehouseId})">Transfer</button></td>
+      `;
+      body.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error loading inventory:", err);
+    document.getElementById("warehouseInventoryTableBody").innerHTML =
+      `<tr><td colspan="6" style="text-align:center;color:red;">Error loading data</td></tr>`;
+  }
+}
+
+
+// ============================== TRANSFER INVENTORY SECTION ==============================
+function openTransferInventoryModal(warehouseId) {
+  document.getElementById("TransferInventoryModal").style.display = "flex";
+}
+
+function closeTransferInventoryModal(event) {
+    if (event && event.target && event.target.id !== "TransferInventoryModal") {
+        return;
+    }
+    document.getElementById("TransferInventoryModal").style.display = "none";
+}
+
+function transferInventory(warehouseId1) {
+  // transferring inventory from warehouseId1 to warehouseId2
+}
 
 // ============================== SUBMIT DELETE WAREHOUSES ==============================
 document.getElementById("submitDeleteWarehouseBtn").addEventListener("click", () => {
@@ -613,7 +676,6 @@ function closeDeleteWarehouseModal(event) {
 
 // Allow clicking dark backdrop to close delete warehouse modal
 document.getElementById("deleteWarehouseModal").addEventListener("click", (e) => closeDeleteWarehouseModal(e));
-
 
 
 // ============================== CHECKOUT MODAL SECTION ==============================
@@ -836,3 +898,5 @@ async function reduceInventory(warehouseId, productId, amount) {
     showToast("Error updating inventory.", 3000);
   }
 }
+
+
