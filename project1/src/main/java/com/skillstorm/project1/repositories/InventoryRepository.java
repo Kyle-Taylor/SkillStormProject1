@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.skillstorm.project1.models.Inventory;
+import com.skillstorm.project1.models.Product;
+import com.skillstorm.project1.models.Warehouse;
 
 @Repository
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
@@ -22,5 +24,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     
     @Query("SELECT i FROM Inventory i WHERE i.quantity < i.minimumStock")
     List<Inventory> findByQuantityLessThanMinimumStock();
+    Inventory findByWarehouseAndProduct(Warehouse warehouse, Product product);
 
 }

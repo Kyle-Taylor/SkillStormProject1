@@ -304,7 +304,7 @@ async function loadProductSelection() {
       <h2 style="display:inline-block; margin-left:10px;">Select Product</h2>
       <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
       <select id="productSelect" style="margin-top:10px;width:100%;padding:8px;">
-        <option value="">-- Choose a product --</option>
+        <option value="">-- Choose A Warehouse --</option>
         ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
       </select>
 
@@ -586,6 +586,7 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
   
     inventory.forEach(i => {
       const row = document.createElement("tr");
+      const cleanedProductName = i.product.productName.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       row.innerHTML = `
         <td>${i.product.productName}</td>
         <td>${i.quantity}</td>
@@ -593,7 +594,7 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
         <td>${i.product.category || "N/A"}</td>
         <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
         <td>${i.minimumStock}</td>
-        <td><button class="btn" style="padding:6px 12px;" onclick="openTransferInventoryModal(${warehouseId})">Transfer</button></td>
+        <td><button class="btn" style="padding:6px 12px;" onclick="openTransferInventoryModal(${i.inventoryId}, '${cleanedProductName}')">Transfer</button></td>
       `;
       body.appendChild(row);
     });
@@ -606,20 +607,63 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
 
 
 // ============================== TRANSFER INVENTORY SECTION ==============================
-function openTransferInventoryModal(warehouseId) {
-  document.getElementById("TransferInventoryModal").style.display = "flex";
+async function openTransferInventoryModal(inventoryId, productName) {
+    inventoryToTransfer = inventoryId; // store for confirm step
+    document.getElementById("transferInventoryModal").style.display = "flex";
+    document.getElementById("transferInventoryTitle").textContent =
+    `Transfer Item: ${productName}`;
+    // Load all warehouses for the dropdown
+    const wRes = await fetch("/warehouses");
+    const warehouses = await wRes.json();
+
+    // Populate dropdown
+    const select = document.getElementById("transferToWarehouseSelect");
+    select.innerHTML = `
+        <option value="">-- Choose A Warehouse --</option>
+        ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
+    `;
 }
+
 
 function closeTransferInventoryModal(event) {
-    if (event && event.target && event.target.id !== "TransferInventoryModal") {
+    if (event && event.target && event.target.id !== "transferInventoryModal") {
         return;
     }
-    document.getElementById("TransferInventoryModal").style.display = "none";
+    document.getElementById("transferInventoryModal").style.display = "none";
+    document.getElementById("WarehouseInventoryModal").style.display = "none";
 }
 
-function transferInventory(warehouseId1) {
-  // transferring inventory from warehouseId1 to warehouseId2
+
+
+async function confirmTransferInventory() {
+
+    const amount = Number(document.getElementById("transferAmountInput").value);
+    const newWarehouseId = document.getElementById("transferToWarehouseSelect").value;
+
+    if (!amount || amount <= 0) {
+        showToast("Please enter a valid amount to transfer.");
+        return;
+    }
+
+    if (!newWarehouseId) {
+        showToast("Select a warehouse to transfer to.");
+        return;
+    }
+
+    try {
+        await fetch(`/inventory/transfer/${inventoryToTransfer}/${newWarehouseId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount: amount })
+        });
+        closeTransferInventoryModal();
+        showToast("Inventory transferred successfully!");
+    } catch (err) {
+        console.error("Error transferring inventory:", err);
+        showToast("Error transferring inventory.", 3000);
+    }
 }
+
 
 // ============================== SUBMIT DELETE WAREHOUSES ==============================
 document.getElementById("submitDeleteWarehouseBtn").addEventListener("click", () => {

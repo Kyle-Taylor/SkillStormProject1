@@ -84,4 +84,9 @@ public Warehouse editWarehouse(Long warehouseId, String name, String location, i
 
     return warehouseRepository.save(warehouse);
 }
+
+public Warehouse getWarehouseById(Long warehouseId) {
+    return warehouseRepository.findById(warehouseId)
+            .orElseThrow(() -> new IllegalArgumentException("Warehouse not found with ID " + warehouseId));
+}
 }

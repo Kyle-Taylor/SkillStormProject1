@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.skillstorm.project1.models.Inventory;
+import com.skillstorm.project1.models.Warehouse;
 import com.skillstorm.project1.repositories.InventoryRepository;
 
 @Service
@@ -70,4 +71,30 @@ public class InventoryService {
         }
         inventoryRepository.deleteById(id);
     }
+
+    public void transferInventory(Inventory source, Warehouse targetWarehouse, int amount) {
+    // 1. Subtract from source warehouse
+    source.setQuantity(source.getQuantity() - amount);
+    inventoryRepository.save(source);
+    // 2. Check if target warehouse already has this product
+    Inventory target = inventoryRepository.findByWarehouseAndProduct(
+            targetWarehouse, source.getProduct());
+
+    if (target != null) {
+        // Add to existing target row
+        target.setQuantity(target.getQuantity() + amount);
+        inventoryRepository.save(target);
+
+    } else {
+        // Create a new inventory row
+        Inventory newInv = new Inventory(
+                targetWarehouse,
+                source.getProduct(),
+                amount,
+                source.getMinimumStock()
+        );
+        inventoryRepository.save(newInv);
+    }
+}
+
 }

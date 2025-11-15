@@ -310,6 +310,26 @@
     </div>
   </div>
 
+<!-- Transfer Inventory Modal -->
+<div id="transferInventoryModal" class="modal" style="display:none;" onclick="closeTransferInventoryModal(event)">
+  <div class="modal-content" id="transferInventoryModalContent" onclick="event.stopPropagation();">
+      <button class="close-btn" onclick="closeTransferInventoryModal()" aria-label="Close">&times;</button>
+      <h2 id="transferInventoryTitle">Transfer Inventory</h2>
+      <label for="transferToWarehouseSelect" style="margin-top:15px; display:block;">
+        Transfer To:
+      </label>
+      <select id="transferToWarehouseSelect" style="width:100%; padding:8px; border-radius:6px;">
+        <option value="">Loading warehouses...</option>
+      </select>
+      <label>Amount to Transfer:</label> <br>
+      <input id="transferAmountInput" type="number" min="1" style="width:15%; padding:8px; margin:10px 0;" />
+      <div style="text-align:right; margin-top:20px;">
+        <button class="btn" onclick="confirmTransferInventory()">Confirm Transfer</button>
+      </div>
+  </div>
+</div>
+
+
   <script src="/Dashboard/Dashboard.js"></script>
 </body>
 </html>

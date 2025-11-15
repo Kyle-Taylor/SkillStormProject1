@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.skillstorm.project1.models.Inventory;
+import com.skillstorm.project1.models.Warehouse;
 import com.skillstorm.project1.services.InventoryService;
+import com.skillstorm.project1.services.WarehouseService;
 
 @RestController
 @RequestMapping("/inventory")
@@ -25,9 +27,12 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
+    private final WarehouseService warehouseService;
+
     // Constructor-based injection
-    public InventoryController(InventoryService inventoryService) {
+    public InventoryController(InventoryService inventoryService, WarehouseService warehouseService) {
         this.inventoryService = inventoryService;
+        this.warehouseService = warehouseService;
     }
 
     // ==============================================
@@ -162,4 +167,26 @@ public class InventoryController {
                     .build();
         }
     }
+
+    // ==============================================
+    // TRANSFER INVENTORY RECORD TO NEW WAREHOSUE
+    // ==============================================
+    @PutMapping("/transfer/{inventoryId}/{newWarehouseId}")
+    public void transferInventory(@PathVariable Long inventoryId,@PathVariable Long newWarehouseId,@RequestBody Map<String, Object> request) {
+    int amount = (int) request.get("amount");
+    // Get the starting inventory row
+    Inventory inventory = inventoryService.getInventoryById(inventoryId)
+            .orElseThrow(() -> new IllegalArgumentException(
+                    "Inventory record not found with ID " + inventoryId));
+    // Validate amount
+    if (amount <= 0 || amount > inventory.getQuantity()) {
+        throw new IllegalArgumentException("Invalid transfer amount: " + amount);
+    }
+    // Get target warehouse
+    Warehouse newWarehouse = warehouseService.getWarehouseById(newWarehouseId);
+    inventoryService.transferInventory(inventory, newWarehouse, amount);
+}
+
+
+
 }
