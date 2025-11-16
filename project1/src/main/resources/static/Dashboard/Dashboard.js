@@ -590,11 +590,12 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
       row.innerHTML = `
         <td>${i.product.productName}</td>
         <td>${i.quantity}</td>
-        <td>${i.product.price}</td>
+        <td>$${i.product.price}</td>
         <td>${i.product.category || "N/A"}</td>
         <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
         <td>${i.minimumStock}</td>
         <td><button class="btn" style="padding:6px 12px;" onclick="openTransferInventoryModal(${i.inventoryId}, '${cleanedProductName}')">Transfer</button></td>
+        <td><button class="btn" style="background-color: Red; padding:6px 12px;" onclick="openDeleteInventoryItemModal(${i.inventoryId})">Delete</button></td>
       `;
       body.appendChild(row);
     });
@@ -633,8 +634,6 @@ function closeTransferInventoryModal(event) {
     document.getElementById("WarehouseInventoryModal").style.display = "none";
 }
 
-
-
 async function confirmTransferInventory() {
 
     const amount = Number(document.getElementById("transferAmountInput").value);
@@ -662,6 +661,30 @@ async function confirmTransferInventory() {
         console.error("Error transferring inventory:", err);
         showToast("Error transferring inventory.", 3000);
     }
+}
+
+async function confirmDeleteInventoryItem(inventoryId) {
+    try {
+        await fetch(`/inventory/delete/${inventoryId}`, {
+            method: "DELETE"
+        });
+        showToast("Inventory item deleted successfully!");
+        document.getElementById("WarehouseInventoryModal").style.display = "none";
+    } catch (err) {
+        console.error("Error deleting inventory item:", err);
+        showToast("Error deleting inventory item.", 3000);
+    }
+}
+function openDeleteInventoryItemModal(inventoryId) {
+    inventoryIdToDelete = inventoryId;
+    document.getElementById("deleteInventoryItemModal").style.display = "flex";
+    document.getElementById("confirmDeleteInventoryItemBtn").onclick = () => {closeDeleteInventoryItemModal(); confirmDeleteInventoryItem(inventoryIdToDelete);};
+}
+function closeDeleteInventoryItemModal(event) {
+    if (event && event.target && event.target.id !== "deleteInventoryItemModal") {
+        return;
+    }
+    document.getElementById("deleteInventoryItemModal").style.display = "none";
 }
 
 

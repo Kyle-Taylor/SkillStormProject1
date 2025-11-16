@@ -152,7 +152,7 @@ public class InventoryController {
     // ==============================================
     // DELETE INVENTORY RECORD
     // ==============================================
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteInventory(@PathVariable Long id) {
         try {
             inventoryService.deleteInventory(id);
