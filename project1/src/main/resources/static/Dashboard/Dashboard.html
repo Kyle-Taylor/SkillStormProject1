@@ -45,7 +45,7 @@
       <div class="tab active">Restock Orders</div>
       <div class="tab">Checkouts</div>
       <div class="tab">Warehouses</div>
-      <div class="tab">All Stock</div>
+      <div class="tab">Products</div>
     </div>
 
     <!-- RESTOCK TABLE -->
@@ -116,6 +116,79 @@
       </table>
     </div>
 
+    <!-- Products TABLE -->
+    <div class="table-container" id="productsSection" style="display: none;">
+      <div class="actions">
+          <button class="btn" onclick="openCreateProductModal()">New Product</button>
+      </div>
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Supplier</th>
+            <th>Total Quantity</th>
+          </tr>
+        </thead>
+        <tbody id="productsTableBody">
+          <tr><td colspan="5" style="text-align:center;">Loading products...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  <!-- CREATE PRODUCT MODAL -->
+  <div id="createProductModal" class="modal" style="display:none;">
+    <div class="modal-content" id="createProductModalContent">
+
+      <button id="closeProductModalBtn" class="close-btn" aria-label="Close" onclick="closeCreateProductModal()">&times;</button>
+      <h2 style="margin-bottom: 10px;">Create New Product</h2>
+      <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem; margin-top:10px;">
+        <tbody>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Product Name</td>
+            <td style="padding:8px 6px;">
+              <input type="text" id="productNameInput"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Unit Price ($)</td>
+            <td style="padding:8px 6px;">
+              <input type="number" id="productPriceInput"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Category</td>
+            <td style="padding:8px 6px;">
+              <input type="text" id="productCategoryInput" min="0" step="0.01"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Supplier</td>
+            <td style="padding:8px 6px;">
+              <select id="productSupplierSelect"
+                style="width:100%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;">
+                <option value="">-- Select Supplier --</option>
+            </select>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <div style="text-align:right;margin-top:20px;">
+        <button id="submitProductBtn" class="btn" style="padding:10px 22px;">Create Product</button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- RESTOCK MODAL -->
   <div id="restockModal" class="modal" onclick="closeRestockModal(event)">
     <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
@@ -143,7 +216,7 @@
             <td style="padding:8px 6px;">
               <input type="text" id="warehouseNameInput"
                 style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
-                placeholder="Ex: Main Storage A1">
+                placeholder="Air Pods Pro">
             </td>
           </tr>
 

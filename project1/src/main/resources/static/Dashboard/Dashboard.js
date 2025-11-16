@@ -66,6 +66,125 @@ async function loadWarehouses() {
   }
 }
 
+// ============================== LOAD PRODUCTS ==============================
+async function loadProducts() {
+    try {
+    const response = await fetch("/products");
+    const products = await response.json();
+    const body = document.getElementById("productsTableBody");
+    body.innerHTML = "";
+
+    if (!products.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center;">No products found.</td></tr>`;
+      return;
+    }
+
+    products.forEach(async p => {
+      const totalQuantity = await getTotalProductQuantity(p.productId);
+      const row = document.createElement("tr");
+      row.setAttribute("onclick", `openEditProductModal(${p.productId}, '${p.productName}', '${p.category}', ${p.price})`);
+      row.classList.add("clickable-row");
+      const supplierInfo = p.supplier
+          ? `${p.supplier.name} (${p.supplier.contactEmail || "No email"})`
+          : "Unknown Supplier";
+      row.innerHTML = `
+        <td>${p.productName}</td>
+        <td>$${p.price}</td>
+        <td>${p.category}</td>
+        <td>${supplierInfo}</td>
+        <td>${totalQuantity}</td>  
+  </td>
+      `;
+      body.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error loading warehouses:", err);
+    document.getElementById("warehouseTableBody").innerHTML =
+      `<tr><td colspan="4" style="text-align:center;color:red;">Error loading data</td></tr>`;
+  }
+}
+
+// ============================== CREATE PRODUCT SECTION ==============================
+function openCreateProductModal() {
+  document.getElementById("createProductModal").style.display = "flex";
+  loadSupplierNames();
+}
+function closeCreateProductModal() {
+  document.getElementById("createProductModal").style.display = "none";
+}
+
+async function submitNewProduct() {
+  const name = document.getElementById("productNameInput").value.trim();
+  const category = document.getElementById("productCategoryInput").value.trim();
+  const price = parseFloat(document.getElementById("productPriceInput").value);
+  const supplierId = document.getElementById("productSupplierSelect").value || null;
+  if (!name || !category || !price) {
+    showToast("Please fill out all fields.");
+    return;
+  }
+  try {
+    const response = await fetch("/products/create_product", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        productName: name, 
+        category: category, 
+        price: price, 
+        supplierId: supplierId})
+    });
+    if (response.ok) {
+      showToast("Product created successfully!");
+      closeCreateProductModal();
+      loadProducts();
+    } else {
+      showToast("Failed to create product.", 3000);
+    }
+  } catch (err) {
+    console.error("Error creating product:", err);
+    showToast("Error creating product.", 3000);
+  }
+}
+async function loadSupplierNames() {
+  try {
+    const response = await fetch("/suppliers");
+    const suppliers = await response.json();
+
+    const supplierSelect = document.getElementById("productSupplierSelect");
+
+    // Clear old options
+    supplierSelect.innerHTML = `
+      <option value="">-- Select Supplier --</option>
+    `;
+
+    suppliers.forEach(supplier => {
+      const option = document.createElement("option");
+      option.value = supplier.supplierId;
+      option.textContent = supplier.name;
+      supplierSelect.appendChild(option);
+    });
+
+  } catch (err) {
+    console.error("Error loading suppliers:", err);
+  }
+}
+
+document.getElementById("submitProductBtn").addEventListener("click", submitNewProduct);
+// ============================== GET TOTAL PRODUCT QUANTITY  ==============================
+async function getTotalProductQuantity(productId) { 
+    try {
+        const response = await fetch(`/inventory/product/${productId}`);
+        const inventoryItems = await response.json();
+        let totalQuantity = 0;
+        inventoryItems.forEach(item => {
+            totalQuantity += item.quantity || 0;
+        });
+        return totalQuantity;
+    } catch (err) {
+        console.error("Error fetching total product quantity:", err);
+        return 0;
+    }
+}
+
 // ============================== EDIT WAREHOUSE SECTION ==============================
 let editingWarehouseId = null;
 
@@ -202,6 +321,7 @@ const tabs = document.querySelectorAll(".tab");
 const restockSection = document.getElementById("restockSection");
 const warehouseSection = document.getElementById("warehouseSection");
 const checkoutSection = document.getElementById("checkoutSection");
+const productsSection = document.getElementById("productsSection");
 
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
@@ -212,18 +332,28 @@ tabs.forEach(tab => {
       restockSection.style.display = "none";
       warehouseSection.style.display = "block";
       checkoutSection.style.display = "none";
+      productsSection.style.display = "none";
       loadWarehouses();
     } else if(tab.textContent.includes("Restock Orders")) {
       warehouseSection.style.display = "none";
       restockSection.style.display = "block";
       checkoutSection.style.display = "none";
+      productsSection.style.display = "none";
       loadRestockOrders();
     }
     else if(tab.textContent.includes("Checkouts")) {
       warehouseSection.style.display = "none";
       restockSection.style.display = "none";
       checkoutSection.style.display = "block";
+      productsSection.style.display = "none";
       loadCheckouts();
+    }
+    else if(tab.textContent.includes("Products")) {
+      warehouseSection.style.display = "none";
+      restockSection.style.display = "none";
+      checkoutSection.style.display = "none";
+      productsSection.style.display = "block";
+      loadProducts();
     }
   });
 });
@@ -435,11 +565,6 @@ function showToast(message, duration = 2500) {
   toast.style.display = "block";
   setTimeout(() => (toast.style.display = "none"), duration);
 }
-
-// Allow clicking dark backdrop to close modal
-document.getElementById("restockModal").addEventListener("click", (e) => closeRestockModal(e));
-
-
 
 // ============================== OPEN CREATE WAREHOUSE MODAL ==============================
 function openCreateWarehouseModal() {
@@ -741,10 +866,6 @@ function closeDeleteWarehouseModal(event) {
     document.getElementById("deleteWarehouseModal").style.display = "none";
 }
 
-// Allow clicking dark backdrop to close delete warehouse modal
-document.getElementById("deleteWarehouseModal").addEventListener("click", (e) => closeDeleteWarehouseModal(e));
-
-
 // ============================== CHECKOUT MODAL SECTION ==============================
 async function openCheckoutModal() {
   const modal = document.getElementById("checkoutModal");
@@ -905,9 +1026,6 @@ function closeCheckoutModal(event) {
   }
   document.getElementById("checkoutModal").style.display = "none";
 }
-
-// Allow clicking backdrop to close modal
-document.getElementById("checkoutModal").addEventListener("click", (e) => closeCheckoutModal(e));
 
 // submit checkout function
 async function submitCheckout() {

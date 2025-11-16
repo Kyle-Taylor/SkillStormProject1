@@ -1,6 +1,7 @@
 package com.skillstorm.project1.conrollers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.skillstorm.project1.models.Product;
+import com.skillstorm.project1.models.Supplier;
 import com.skillstorm.project1.services.ProductService;
+import com.skillstorm.project1.services.SupplierService;
 
 @RestController
 @RequestMapping("/products")
@@ -24,8 +27,10 @@ public class ProductController {
 
     //injection for productService
     private final ProductService productService;
-    public ProductController(ProductService productService){
+    private final SupplierService supplierService;
+    public ProductController(ProductService productService, SupplierService supplierService){
         this.productService = productService;
+        this.supplierService = supplierService;
     }
 
     @GetMapping
@@ -37,7 +42,6 @@ public class ProductController {
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
             .build();
         }
-        
     }
 
     @GetMapping("/{id}")
@@ -57,27 +61,49 @@ public class ProductController {
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
             .build();
         }
-        
-        
     }
 
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    @PostMapping("/create_product")
+    public ResponseEntity<Product> createProduct(@RequestBody Map<String, Object> payload) {
         try {
-            return new ResponseEntity<>(productService.createProduct(product),HttpStatus.OK);
+            String productName = payload.get("productName").toString();
+            double price = Double.parseDouble(payload.get("price").toString());
+            String category = payload.get("category").toString();
+
+            // supplierId may be null or empty
+            Long supplierId = null;
+            if (payload.get("supplierId") != null && !payload.get("supplierId").toString().isEmpty()) {
+                supplierId = Long.valueOf(payload.get("supplierId").toString());
+            }
+
+            Product product = new Product();
+            product.setProductName(productName);
+            product.setPrice(price);
+            product.setCategory(category);
+
+            if (supplierId != null) {
+                Supplier supplier = supplierService.getSupplierById(supplierId);
+                product.setSupplier(supplier);
+            } 
+            else {
+                product.setSupplier(null);
+            }
+
+            Product created = productService.createProduct(product);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
         } 
-        catch (IllegalArgumentException e){
-            return ResponseEntity.badRequest()
-            .header("Error: ", e.getMessage())
-            .build();
+        catch (NumberFormatException e) {
+            return ResponseEntity.internalServerError()
+                .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
+                .build();
         }
         catch (Exception e) {
             return ResponseEntity.internalServerError()
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
             .build();
         }
-        
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updated) {

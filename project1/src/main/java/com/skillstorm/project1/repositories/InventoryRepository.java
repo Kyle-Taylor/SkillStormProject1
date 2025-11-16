@@ -25,5 +25,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Query("SELECT i FROM Inventory i WHERE i.quantity < i.minimumStock")
     List<Inventory> findByQuantityLessThanMinimumStock();
     Inventory findByWarehouseAndProduct(Warehouse warehouse, Product product);
+    
 
 }

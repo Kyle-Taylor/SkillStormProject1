@@ -27,7 +27,7 @@ public class CheckoutService {
     }
     // FindAllCheckouts
     public List<Checkout> findAllCheckouts() {
-        return checkoutRepository.findAll();
+        return checkoutRepository.findAllByOrderByCheckoutDateDesc();
     }
     
     // creating a checkout
