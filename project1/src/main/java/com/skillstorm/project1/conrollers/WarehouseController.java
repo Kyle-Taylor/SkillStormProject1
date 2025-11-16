@@ -20,6 +20,7 @@ import com.skillstorm.project1.services.WarehouseService;
 
 
 
+
 @RestController
 @RequestMapping("/warehouses")
 @CrossOrigin(origins = "*")
@@ -82,6 +83,17 @@ public class WarehouseController {
             );
             return new ResponseEntity<>(updated, HttpStatus.OK);
         } catch (NumberFormatException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // get warehouse by id
+    @GetMapping("/{id}")
+    public ResponseEntity<Warehouse> getWarehouseById(@PathVariable Long id) {
+        try {
+            Warehouse warehouse = warehouseService.getWarehouseById(id);
+            return new ResponseEntity<>(warehouse, HttpStatus.OK);
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }

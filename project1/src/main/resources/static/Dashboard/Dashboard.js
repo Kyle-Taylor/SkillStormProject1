@@ -38,6 +38,7 @@ async function loadWarehouses() {
     const response = await fetch("/warehouses");
     const warehouses = await response.json();
     const body = document.getElementById("warehouseTableBody");
+    let warehousesNearCapacity = 0;
     body.innerHTML = "";
 
     if (!warehouses.length) {
@@ -50,13 +51,26 @@ async function loadWarehouses() {
       row.setAttribute("onclick", `openWarehouseInventoryModal(${w.warehouseId}, '${w.name}')`);
       row.classList.add("clickable-row");
       row.innerHTML = `
-        <td>${w.name}</td>
-        <td>${w.location}</td>
-        <td>${w.totalSupply}</td>
-        <td>${w.capacity || "N/A"}</td>
-        <td><button class="btn" style="padding:6px 12px;" onclick="openEditWarehouseModal(${w.warehouseId}, '${w.name}', '${w.location}', ${w.capacity})">Edit</button>
-  </td>
-      `;
+      <td>${w.name}</td>
+      <td>${w.location}</td>
+      <td>${Number(w.totalSupply).toLocaleString("en-US")}</td>
+      <td>${w.capacity ? Number(w.capacity).toLocaleString("en-US") : "N/A"}</td>
+      <td>
+        <button class="btn" style="padding:6px 12px; width:100px; height:30px;" 
+          onclick="event.stopPropagation(); openEditWarehouseModal(${w.warehouseId}, '${w.name}', '${w.location}', ${w.capacity})">
+          Edit
+        </button>
+      </td>
+    `;
+
+    if (loadWarehousesNearCapacity(w.totalSupply, w.capacity)) {
+      row.style.border = "2px solid orange";
+      warehousesNearCapacity++;
+    }
+    document.getElementById("warehousesNearCapacityCount").innerHTML = 
+    `
+    <h3>Warehouses Near Capacity ⚠️</h3>
+    <span class="card-value">${warehousesNearCapacity}</span>`;
       body.appendChild(row);
     });
   } catch (err) {
@@ -64,6 +78,11 @@ async function loadWarehouses() {
     document.getElementById("warehouseTableBody").innerHTML =
       `<tr><td colspan="4" style="text-align:center;color:red;">Error loading data</td></tr>`;
   }
+}
+
+function loadWarehousesNearCapacity(totalSupply, capacity){
+  const warningThreshold = 0.9; // 90% capacity
+  return totalSupply / capacity >= warningThreshold;
 }
 
 // ============================== LOAD PRODUCTS ==============================
@@ -137,6 +156,8 @@ async function submitNewProduct() {
       showToast("Product created successfully!");
       closeCreateProductModal();
       loadProducts();
+      loadWarehouses();
+      loadTotalInventoryQuantityAndValue();
     } else {
       showToast("Failed to create product.", 3000);
     }
@@ -211,6 +232,8 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
         showToast("Product updated successfully!");
         closeEditProductModal();
         loadProducts();
+        loadWarehouses();
+        loadTotalInventoryQuantityAndValue();
       } else {
         showToast("Failed to update product.", 3000);
       }
@@ -248,7 +271,8 @@ async function confirmDeleteProduct(productId) {
       closeEditProductModal();
       closeDeleteProductModal();
       loadProducts();
-      loadTotalInventoryQuantity();
+      loadTotalInventoryQuantityAndValue();
+      loadWarehouses();
     } else {
       showToast("Failed to delete product.", 3000);
     }
@@ -259,23 +283,36 @@ async function confirmDeleteProduct(productId) {
 }
 
 // ============================== LOAD TOTAL INVENTORY QUANTITY ==============================
-async function loadTotalInventoryQuantity() {
+async function loadTotalInventoryQuantityAndValue() {
     try {
       const response = await fetch(`/inventory`);
       const inventoryItems = await response.json();
       let totalQuantity = 0;
+      let totalValue = 0;
       inventoryItems.forEach(item => {
         totalQuantity += item.quantity || 0;
+        totalValue += (item.quantity || 0) * (item.product.price || 0);
       });
+      const formattedValue = totalValue.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
       document.getElementById("totalInventoryQuantity").innerHTML = `
       <span class="card-value">
       <h3>Overall supply inventory</h3>
       ${totalQuantity}</span>`;
+
+      document.getElementById("totalInventoryValue").innerHTML = `
+      <span class="card-value">
+      <h3>Total Inventory Value</h3>
+      $${formattedValue}</span>`;
     
     } catch (err) {
       console.error("Error loading total inventory quantity:", err);
     }
 }
+// ============================== LOAD TOTAL INVENTORY VALUE ==============================
 
 // ============================== GET TOTAL PRODUCT QUANTITY  ==============================
 async function getTotalProductQuantity(productId) { 
@@ -337,6 +374,7 @@ document.getElementById("submitEditWarehouseBtn").addEventListener("click", asyn
       showToast("Warehouse updated successfully!");
       closeEditWarehouseModal();
       loadWarehouses();
+      loadTotalInventoryQuantityAndValue();
     } else {
       showToast("Failed to update warehouse.", 3000);
     }
@@ -415,7 +453,8 @@ async function logout() {
 checkLogin();
 loadRestockOrders();
 loadLowStockCount();
-loadTotalInventoryQuantity();
+loadTotalInventoryQuantityAndValue();
+loadWarehouses();
 
 // ============================== DROPDOWN ==============================
 const dropdown = document.getElementById("userDropdown");
@@ -629,6 +668,12 @@ async function loadProductSelection() {
 
           try {
             for (const wId of selectedWarehouses) {
+              if(await checkWarehouseCapacity(wId, amount) === false){
+              showToast("This change will place a selected warehouse(s) over capacity!", 5000);
+              closeRestockModal();
+              loadRestockOrders();
+              return;
+            }
               await fetch("/restocks/create_restock", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -641,9 +686,10 @@ async function loadProductSelection() {
               });
             }
             showToast("Restock order(s) created successfully!");
-            loadTotalInventoryQuantity();
+            loadTotalInventoryQuantityAndValue();
             closeRestockModal();
             loadRestockOrders();
+            loadWarehouses();
           } catch (postErr) {
             console.error("Error creating restock:", postErr);
             showToast("Error creating restock order.", 3000);
@@ -885,6 +931,12 @@ async function confirmTransferInventory() {
     }
 
     try {
+      if(await checkWarehouseCapacity(newWarehouseId, amount) === false){
+              showToast("This change will place a selected warehouse(s) over capacity!", 5000);
+              closeTransferInventoryModal();
+              loadWarehouses();
+              return;
+            }
         await fetch(`/inventory/transfer/${inventoryToTransfer}/${newWarehouseId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -892,6 +944,8 @@ async function confirmTransferInventory() {
         });
         closeTransferInventoryModal();
         loadLowStockCount();
+        loadWarehouses();
+        loadTotalInventoryQuantityAndValue();
         showToast("Inventory transferred successfully!");
     } catch (err) {
         console.error("Error transferring inventory:", err);
@@ -907,7 +961,8 @@ async function confirmDeleteInventoryItem(inventoryId) {
         showToast("Inventory item deleted successfully!");
         document.getElementById("WarehouseInventoryModal").style.display = "none";
         loadLowStockCount();
-        loadTotalInventoryQuantity();
+        loadTotalInventoryQuantityAndValue();
+        loadWarehouses();
     } catch (err) {
         console.error("Error deleting inventory item:", err);
         showToast("Error deleting inventory item.", 3000);
@@ -953,14 +1008,13 @@ document.getElementById("confirmYesBtn").addEventListener("click", async () => {
         for (const wId of selectedWarehouses) {
             await fetch(`/warehouses/delete_warehouse/${wId}`, { method: "DELETE" });
         }
-        loadTotalInventoryQuantity();
+        loadTotalInventoryQuantityAndValue();
         showToast("Selected warehouse(s) deleted successfully!");
         document.getElementById("confirmOverlay").style.display = "none";
         document.getElementById("confirmDeleteBox").style.display = "none";
         document.getElementById("deleteWarehouseModal").style.display = "none";
-
         loadWarehouses();
-
+        
     } catch (err) {
         console.error("Delete error:", err);
         showToast("Error deleting warehouse(s).", 3000);
@@ -1162,7 +1216,7 @@ async function submitCheckout() {
       await reduceInventory(warehouseId, productId, amount);
       showToast("Checkout successfull!");
       loadLowStockCount();
-      loadTotalInventoryQuantity();
+      loadTotalInventoryQuantityAndValue();
       document.getElementById("checkoutModal").style.display = "none";
       loadCheckouts();
     } else {
@@ -1188,6 +1242,8 @@ async function reduceInventory(warehouseId, productId, amount) {
 
     if (response.ok) {
       showToast("Inventory updated successfully!");
+      loadWarehouses();
+      loadTotalInventoryQuantityAndValue();
     } else {
       showToast("Failed to update inventory.");
     }
@@ -1196,6 +1252,29 @@ async function reduceInventory(warehouseId, productId, amount) {
     console.error("Error updating inventory:", err);
     showToast("Error updating inventory.", 3000);
   }
+}
+
+// ============================== VALIDATE DATA  ==============================
+function checkWarehouseCapacity(warehouseId, additionalAmount) {
+  return Promise.all([
+    fetch(`/inventory/warehouse/${warehouseId}`).then(res => res.json()),
+    fetch(`/warehouses/${warehouseId}`).then(res => res.json())
+  ])
+  .then(([inventoryItems, warehouse]) => {
+    const currentTotal = inventoryItems.reduce(
+      (sum, item) => sum + (item.quantity || 0),
+      0
+    );
+
+    const cap = Number(warehouse.capacity) || 0;
+    const projected = currentTotal + Number(additionalAmount);
+
+    return projected <= cap; // true = fits, false = over capacity
+  })
+  .catch(err => {
+    console.error("Error checking warehouse capacity:", err);
+    return false;
+  });
 }
 
 

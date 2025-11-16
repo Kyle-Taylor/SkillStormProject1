@@ -1,10 +1,8 @@
 package com.skillstorm.project1.services;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
@@ -32,7 +30,6 @@ public class WarehouseService {
     List<Warehouse> warehouses = warehouseRepository.findAllByOrderByNameAsc();
     List<Inventory> inventory = inventoryRepository.findAll();
     List<Map<String, Object>> results = new ArrayList<>();
-    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
 
     for (Warehouse w : warehouses) {
         int total = inventory.stream()
@@ -44,8 +41,8 @@ public class WarehouseService {
         data.put("warehouseId", w.getWarehouseId());
         data.put("name", w.getName());
         data.put("location", w.getLocation());
-        data.put("totalSupply", numberFormat.format(total));
-        data.put("capacity", numberFormat.format(w.getCapacity()));
+        data.put("totalSupply", total);
+        data.put("capacity", w.getCapacity());
         results.add(data);
     }
 
