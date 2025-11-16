@@ -219,9 +219,62 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
       showToast("Error updating product.", 3000);
     }
   }
+  document.getElementById("deleteProductBtn").onclick = () => {
+  openDeleteProductModal(id);
+};
 }
 function closeEditProductModal() {
   document.getElementById("editProductModal").style.display = "none";
+}
+
+// ============================== DELETE PRODUCT SECTION ==============================
+function openDeleteProductModal(productId) {
+  document.getElementById("deleteProductModal").style.display = "flex";
+  document.getElementById("confirmDeleteProductBtn").addEventListener("click", () => {
+  confirmDeleteProduct(productId);
+  });
+}
+function closeDeleteProductModal() {
+  document.getElementById("deleteProductModal").style.display = "none";
+}
+async function confirmDeleteProduct(productId) {
+  try {
+    const response = await fetch(`/products/delete/${productId}`, {
+      method: "DELETE"
+    });
+
+    if (response.ok) {
+      showToast("Product deleted successfully!");
+      closeEditProductModal();
+      closeDeleteProductModal();
+      loadProducts();
+      loadTotalInventoryQuantity();
+    } else {
+      showToast("Failed to delete product.", 3000);
+    }
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    showToast("Error deleting product.", 3000);
+  }
+}
+
+// ============================== LOAD TOTAL INVENTORY QUANTITY ==============================
+async function loadTotalInventoryQuantity() {
+    try {
+      const response = await fetch(`/inventory`);
+      const inventoryItems = await response.json();
+      let totalQuantity = 0;
+      inventoryItems.forEach(item => {
+        totalQuantity += item.quantity || 0;
+      });
+      document.getElementById("totalInventoryQuantity").innerHTML = `
+      <span class="card-value">
+      <h3>Overall supply inventory</h3>
+      ${totalQuantity}</span>`;
+    
+    } catch (err) {
+      console.error("Error loading total inventory quantity:", err);
+    }
 }
 
 // ============================== GET TOTAL PRODUCT QUANTITY  ==============================
@@ -362,6 +415,7 @@ async function logout() {
 checkLogin();
 loadRestockOrders();
 loadLowStockCount();
+loadTotalInventoryQuantity();
 
 // ============================== DROPDOWN ==============================
 const dropdown = document.getElementById("userDropdown");
@@ -489,7 +543,7 @@ async function loadProductSelection() {
       <h2 style="display:inline-block; margin-left:10px;">Select Product</h2>
       <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
       <select id="productSelect" style="margin-top:10px;width:100%;padding:8px;">
-        <option value="">-- Choose A Warehouse --</option>
+        <option value="">-- Choose A Product --</option>
         ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
       </select>
 
@@ -587,6 +641,7 @@ async function loadProductSelection() {
               });
             }
             showToast("Restock order(s) created successfully!");
+            loadTotalInventoryQuantity();
             closeRestockModal();
             loadRestockOrders();
           } catch (postErr) {
@@ -836,6 +891,7 @@ async function confirmTransferInventory() {
             body: JSON.stringify({ amount: amount })
         });
         closeTransferInventoryModal();
+        loadLowStockCount();
         showToast("Inventory transferred successfully!");
     } catch (err) {
         console.error("Error transferring inventory:", err);
@@ -850,6 +906,8 @@ async function confirmDeleteInventoryItem(inventoryId) {
         });
         showToast("Inventory item deleted successfully!");
         document.getElementById("WarehouseInventoryModal").style.display = "none";
+        loadLowStockCount();
+        loadTotalInventoryQuantity();
     } catch (err) {
         console.error("Error deleting inventory item:", err);
         showToast("Error deleting inventory item.", 3000);
@@ -895,9 +953,8 @@ document.getElementById("confirmYesBtn").addEventListener("click", async () => {
         for (const wId of selectedWarehouses) {
             await fetch(`/warehouses/delete_warehouse/${wId}`, { method: "DELETE" });
         }
-
+        loadTotalInventoryQuantity();
         showToast("Selected warehouse(s) deleted successfully!");
-
         document.getElementById("confirmOverlay").style.display = "none";
         document.getElementById("confirmDeleteBox").style.display = "none";
         document.getElementById("deleteWarehouseModal").style.display = "none";
@@ -1104,6 +1161,8 @@ async function submitCheckout() {
     if (response.ok) {
       await reduceInventory(warehouseId, productId, amount);
       showToast("Checkout successfull!");
+      loadLowStockCount();
+      loadTotalInventoryQuantity();
       document.getElementById("checkoutModal").style.display = "none";
       loadCheckouts();
     } else {
