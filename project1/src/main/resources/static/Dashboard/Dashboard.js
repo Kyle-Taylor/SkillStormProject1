@@ -80,13 +80,14 @@ async function loadProducts() {
     }
 
     products.forEach(async p => {
+      const supplierInfo = p.supplier
+        ? `${p.supplier.name} (${p.supplier.contactEmail || "No email"})`
+        : "Unknown Supplier";
       const totalQuantity = await getTotalProductQuantity(p.productId);
       const row = document.createElement("tr");
-      row.setAttribute("onclick", `openEditProductModal(${p.productId}, '${p.productName}', '${p.category}', ${p.price})`);
+      row.setAttribute("onclick", `openEditProductModal(${p.productId}, '${p.productName}', '${p.category}', ${p.price}, '${p.supplier?.supplierId || null}', ${totalQuantity})`);
       row.classList.add("clickable-row");
-      const supplierInfo = p.supplier
-          ? `${p.supplier.name} (${p.supplier.contactEmail || "No email"})`
-          : "Unknown Supplier";
+
       row.innerHTML = `
         <td>${p.productName}</td>
         <td>$${p.price}</td>
@@ -107,7 +108,7 @@ async function loadProducts() {
 // ============================== CREATE PRODUCT SECTION ==============================
 function openCreateProductModal() {
   document.getElementById("createProductModal").style.display = "flex";
-  loadSupplierNames();
+  loadSupplierNames(null, "createProductSupplierSelect");
 }
 function closeCreateProductModal() {
   document.getElementById("createProductModal").style.display = "none";
@@ -117,7 +118,7 @@ async function submitNewProduct() {
   const name = document.getElementById("productNameInput").value.trim();
   const category = document.getElementById("productCategoryInput").value.trim();
   const price = parseFloat(document.getElementById("productPriceInput").value);
-  const supplierId = document.getElementById("productSupplierSelect").value || null;
+  const supplierId = document.getElementById("createProductSupplierSelect").value || null;
   if (!name || !category || !price) {
     showToast("Please fill out all fields.");
     return;
@@ -144,12 +145,12 @@ async function submitNewProduct() {
     showToast("Error creating product.", 3000);
   }
 }
-async function loadSupplierNames() {
+async function loadSupplierNames(selectedSupplierId, selectElementId) {
   try {
     const response = await fetch("/suppliers");
     const suppliers = await response.json();
 
-    const supplierSelect = document.getElementById("productSupplierSelect");
+    const supplierSelect = document.getElementById(selectElementId);
 
     // Clear old options
     supplierSelect.innerHTML = `
@@ -160,6 +161,11 @@ async function loadSupplierNames() {
       const option = document.createElement("option");
       option.value = supplier.supplierId;
       option.textContent = supplier.name;
+
+      if (supplier.supplierId == selectedSupplierId) {
+        option.selected = true;
+      }
+
       supplierSelect.appendChild(option);
     });
 
@@ -169,6 +175,55 @@ async function loadSupplierNames() {
 }
 
 document.getElementById("submitProductBtn").addEventListener("click", submitNewProduct);
+
+// ============================== EDIT PRODUCT SECTION ==============================
+function openEditProductModal(id, name, category, price, supplierId, totalQuantity) {
+  loadSupplierNames(supplierId, "editProductSupplierSelect");
+  document.getElementById("editProductModal").style.display = "flex";
+  document.getElementById("editProductName").value = name;
+  document.getElementById("editProductCategory").value = category;
+  document.getElementById("editProductPrice").value = price;
+  document.getElementById("editProductTotalQuantity").value = totalQuantity;
+
+  document.getElementById("submitEditProductBtn").onclick = async () => {
+    const updatedName = document.getElementById("editProductName").value.trim();
+    const updatedCategory = document.getElementById("editProductCategory").value.trim();
+    const updatedPrice = parseFloat(document.getElementById("editProductPrice").value);
+    const updatedSupplierId = document.getElementById("editProductSupplierSelect").value || null;
+    
+    if (!updatedName || !updatedCategory || isNaN(updatedPrice)) {
+      showToast("Please fill out all fields.");
+      return;
+    }
+    try {
+      const response = await fetch(`/products/edit_product/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          productName: updatedName, 
+          category: updatedCategory, 
+          price: updatedPrice, 
+          supplierId: updatedSupplierId ? parseInt(updatedSupplierId) : null
+        })
+      });
+
+      if (response.ok) {
+        showToast("Product updated successfully!");
+        closeEditProductModal();
+        loadProducts();
+      } else {
+        showToast("Failed to update product.", 3000);
+      }
+    } catch (err) {
+      console.error("Error updating product:", err);
+      showToast("Error updating product.", 3000);
+    }
+  }
+}
+function closeEditProductModal() {
+  document.getElementById("editProductModal").style.display = "none";
+}
+
 // ============================== GET TOTAL PRODUCT QUANTITY  ==============================
 async function getTotalProductQuantity(productId) { 
     try {

@@ -117,7 +117,7 @@ public class ProductController {
         
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
 
         try {
@@ -128,6 +128,27 @@ public class ProductController {
             return ResponseEntity.badRequest()
             .header("Error: ", "Product not found with ID " + id)
             .build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError()
+            .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
+            .build();
+        }
+    }
+
+    //put request to edit product
+    @PutMapping("/edit_product/{id}")
+    public ResponseEntity<Product> editProduct(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        try {
+            Product updated = productService.editProduct(id,
+                payload.get("productName").toString(),
+                payload.get("category").toString(),
+                Double.parseDouble(payload.get("price").toString()),
+                Long.valueOf(payload.get("supplierId").toString())
+            );
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.internalServerError().build();
         }
         catch (Exception e) {
             return ResponseEntity.internalServerError()

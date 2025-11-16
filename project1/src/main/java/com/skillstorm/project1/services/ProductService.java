@@ -6,15 +6,21 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.skillstorm.project1.models.Product;
+import com.skillstorm.project1.models.Supplier;
 import com.skillstorm.project1.repositories.ProductRepository;
+import com.skillstorm.project1.repositories.SupplierRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProductService {
 
-    //injection for productRepository
+    //injection for productRepository and supplierRepository
     private final ProductRepository productRepository;
-    public ProductService(ProductRepository productRepository){
+    private final SupplierRepository supplierRepository;
+    public ProductService(ProductRepository productRepository, SupplierRepository supplierRepository){
         this.productRepository = productRepository;
+        this.supplierRepository = supplierRepository;
     }
 
     public List<Product> getAllProducts() {
@@ -42,5 +48,23 @@ public class ProductService {
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
+    }
+
+    // EDIT PRODUCT METHOD
+    @Transactional
+    public Product editProduct(Long productId, String productName, String category, double price, Long supplierId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with ID " + productId));
+        product.setProductName(productName);
+        product.setCategory(category);
+        product.setPrice(price);
+        
+        if (supplierId != null) {
+        Supplier s = supplierRepository.findById(supplierId).orElseThrow();
+        product.setSupplier(s);
+    } else {
+        product.setSupplier(null);
+    }
+    return productRepository.save(product);
     }
 }
