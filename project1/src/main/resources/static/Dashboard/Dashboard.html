@@ -46,6 +46,7 @@
       <div class="tab">Checkouts</div>
       <div class="tab">Warehouses</div>
       <div class="tab">Products</div>
+      <div class="tab">Suppliers</div>
     </div>
 
     <!-- RESTOCK TABLE -->
@@ -138,12 +139,159 @@
       </table>
     </div>
 
+    <!-- SUPPLIERS TABLE -->
+    <div class="table-container" id="suppliersSection" style="display: none;">
+      <div class="actions">
+          <button class="btn" onclick="openCreateSupplierModal()">New Supplier</button>
+      </div>
+      <table id="suppliersTable">
+        <thead>
+          <tr>
+            <th>Supplier Name</th>
+            <th>Contact Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+          </tr>
+        </thead>
+        <tbody id="suppliersTableBody">
+          <tr><td colspan="4" style="text-align:center;">Loading suppliers...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  <!-- EDIT SUPPLIER MODAL -->
+   <div id="editSupplierModal" class="modal" style="display:none;">
+  <div class="modal-content" id="editSupplierModalContent" onclick="event.stopPropagation();">
+    <button class="close-btn" onclick="closeEditSupplierModal()" aria-label="Close">&times;</button>
+    <h2>Edit Supplier</h2>
+    <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd;">
+      <tbody>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:8px 6px; width:140px; font-weight:600;">Supplier Name</td>
+          <td style="padding:8px 6px;">
+            <input id="editSupplierName"
+                   class="modal-input"
+                   type="text"
+                   style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:8px 6px; font-weight:600;">Email</td>
+          <td style="padding:8px 6px;">
+            <input id="editSupplierEmail"
+                   class="modal-input"
+                   type="text"
+                   style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+        <td style="padding:8px 6px; font-weight:600;">Phone</td>
+        <td style="padding:8px 6px;">
+          <input id="editSupplierPhone"
+                class="modal-input"
+                type="text"
+                placeholder="3375550123"
+                style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+        </td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:8px 6px; font-weight:600;">Address</td>
+          <td style="padding:8px 6px;">
+            <input id="editSupplierAddress"
+                   class="modal-input"
+                   type="text"
+                   style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:20px; display:flex; justify-content:space-between;">
+      <button id="deleteSupplierBtn" class="btn" style="background-color:red;">Delete Supplier</button>
+      <button id="submitEditSupplierBtn" class="btn">Save Changes</button>
+    </div>
+  </div>
+</div>
+  <!-- CONFIRM DELETE SUPPLIER MODAL -->
+ <div id="deleteSupplierModal" class="modal">
+    <div style="background-color: red;
+            position:absolute;
+            top:50%; left:50%;
+            transform:translate(-50%, -50%);
+            background:#6b0000;
+            padding:20px;
+            border-radius:8px;
+            width:320px;
+            border:1px solid #444;
+            z-index:30;"
+     class="modal-content" id="deleteSupplierModalContent" onclick="event.stopPropagation();">
+      <button class="close-btn" onclick="closeDeleteSupplierModal()" aria-label="Close">&times;</button>
+      <h2 style="text-align: center;">Confirm Delete</h2>
+      <p style="text-align: center;">Are you sure you want to delete this supplier? <br> <br> This will remove this supplier from all products!!</p>
+      <div style="text-align:right;margin-top:20px; display:flex; justify-content:space-between; gap:20px;">
+        <button class="btn" onclick="closeDeleteSupplierModal()">Cancel</button>
+        <button id="confirmDeleteSupplierBtn" class="btn" style="background-color:red;">Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE SUPPLIER MODAL -->
+  <div id="createSupplierModal" class="modal" style="display:none;">
+    <div class="modal-content" id="createSupplierModalContent">
+
+      <button id="closeSupplierModalBtn" class="close-btn" aria-label="Close" onclick="closeCreateSupplierModal()">&times;</button>
+      <h2 style="margin-bottom: 10px;">Create New Supplier</h2>
+      <form id="supplierForm">
+      <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem; margin-top:10px;">
+        <tbody>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Supplier Name</td>
+            <td style="padding:8px 6px;">
+              <input type="text" id="supplierNameInput"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Contact Email</td>
+            <td style="padding:8px 6px;">
+              <input type="email" id="supplierEmailInput"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Phone</td>
+            <td style="padding:8px 6px;">
+              <input type="tel" id="supplierPhoneInput" min="0" step="0.01"
+                placeholder="3375550123"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Address</td>
+            <td style="padding:8px 6px;">
+              <input type="text" id="supplierAddressInput" min="0" step="0.01"
+                style="width:95%;padding:8px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;"
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </form>
+      <div style="text-align:right;margin-top:20px;">
+        <button id="submitSupplierBtn" class="btn" style="padding:10px 22px;">Create Supplier</button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- CREATE PRODUCT MODAL -->
   <div id="createProductModal" class="modal" style="display:none;">
     <div class="modal-content" id="createProductModalContent">
 
       <button id="closeProductModalBtn" class="close-btn" aria-label="Close" onclick="closeCreateProductModal()">&times;</button>
       <h2 style="margin-bottom: 10px;">Create New Product</h2>
+      <form id="createProductForm">
       <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem; margin-top:10px;">
         <tbody>
 
@@ -182,7 +330,7 @@
 
         </tbody>
       </table>
-
+      </form>
       <div style="text-align:right;margin-top:20px;">
         <button id="submitProductBtn" class="btn" style="padding:10px 22px;">Create Product</button>
       </div>
@@ -292,7 +440,7 @@
 
       <button id="closeWarehouseModalBtn" class="close-btn" aria-label="Close">&times;</button>
       <h2 style="margin-bottom: 10px;">Create New Warehouse</h2>
-
+      <form id="createWarehouseForm">
       <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem; margin-top:10px;">
         <tbody>
 
@@ -324,7 +472,7 @@
           </tr>
         </tbody>
       </table>
-
+      </form>
       <div style="text-align:right;margin-top:20px;">
         <button id="submitWarehouseBtn" class="btn" style="padding:10px 22px;">Create Warehouse</button>
       </div>

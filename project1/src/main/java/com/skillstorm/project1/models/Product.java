@@ -33,7 +33,7 @@ public class Product {
 
     // NEW: Many-to-one relationship with Supplier
     @ManyToOne
-    @JoinColumn(name = "supplier_id", referencedColumnName = "supplierId")
+    @JoinColumn(name = "supplier_id", referencedColumnName = "supplierId", nullable = true)
     private Supplier supplier;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

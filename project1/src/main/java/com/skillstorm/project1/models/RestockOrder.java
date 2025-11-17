@@ -36,7 +36,7 @@ public class RestockOrder {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_id")
+    @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
 
     @Column(nullable = false)

@@ -125,12 +125,174 @@ async function loadProducts() {
   }
 }
 
+// ============================== LOAD SUPPLIERS ==============================`
+async function loadSuppliers() {
+    try {
+    const response = await fetch("/suppliers");
+    const suppliers = await response.json();
+    const body = document.getElementById("suppliersTableBody");
+    body.innerHTML = "";
+
+    if (!suppliers.length) {
+      body.innerHTML = `<tr><td colspan="4" style="text-align:center;">No suppliers found.</td></tr>`;
+      return;
+    }
+
+    suppliers.forEach(async p => {
+      const row = document.createElement("tr");
+      const cleanedPhone = formatPhone(p.phone);
+      row.setAttribute("onclick", `openEditSupplierModal(${p.supplierId}, '${p.name}', '${p.contactEmail}', '${cleanedPhone}', '${p.address}')`);
+      row.classList.add("clickable-row");
+      row.innerHTML = `
+        <td>${p.name}</td>
+        <td>${p.contactEmail}</td>
+        <td>${cleanedPhone}</td>
+        <td>${p.address}</td>
+      `;
+      body.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error loading warehouses:", err);
+    document.getElementById("warehouseTableBody").innerHTML =
+      `<tr><td colspan="4" style="text-align:center;color:red;">Error loading data</td></tr>`;
+  }
+}
+
+// ============================== EDIT SUPPLIER ==============================
+function openEditSupplierModal(id, name, email, phone, address) {
+  document.getElementById("deleteSupplierBtn").onclick = () => {
+    openDeleteSupplierModal(id);
+  };
+  document.getElementById("confirmDeleteSupplierBtn").onclick = async () => {
+    confirmDeleteSupplier(id);};
+
+  document.getElementById("editSupplierModal").style.display = "flex";
+  document.getElementById("editSupplierName").value = name;
+  document.getElementById("editSupplierEmail").value = email;
+  document.getElementById("editSupplierPhone").value = phone;
+  document.getElementById("editSupplierAddress").value = address;
+  document.getElementById("submitEditSupplierBtn").onclick = async () => {
+    const updatedName = document.getElementById("editSupplierName").value.trim();
+    const updatedEmail = document.getElementById("editSupplierEmail").value.trim();
+    const updatedPhone = document.getElementById("editSupplierPhone").value.trim();
+    const updatedAddress = document.getElementById("editSupplierAddress").value.trim();
+    if (!updatedName || !updatedEmail || !updatedPhone || !updatedAddress) {
+      showToast("Please fill out all required fields.");
+      return;
+    }
+    if(!validateEmail(updatedEmail)){
+      showToast("Please enter a valid email address.");
+      return;
+    }
+    if(!validatePhone(updatedPhone)){
+      showToast("Please enter a valid phone number.");
+      return;
+    }
+    try {
+      const response = await fetch(`/suppliers/edit_supplier/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: updatedName,
+          contactEmail: updatedEmail,
+          phone: updatedPhone,
+          address: updatedAddress
+        })
+      });
+      if (response.ok) {
+        showToast("Supplier updated successfully!");
+        closeEditSupplierModal();
+        loadSuppliers();
+      } else {
+        showToast("Failed to update supplier.");
+      }
+    } catch (err) {
+      console.error("Error updating supplier:", err);
+      showToast("Error updating supplier.");
+    }
+  };
+}
+function closeEditSupplierModal() {
+  document.getElementById("editSupplierModal").style.display = "none";
+}
+
+function openDeleteSupplierModal(supplierId) {
+  document.getElementById("deleteSupplierModal").style.display = "flex";
+}
+function closeDeleteSupplierModal() {
+  document.getElementById("deleteSupplierModal").style.display = "none";
+}
+
+async function confirmDeleteSupplier(supplierId) {
+  try {
+    const response = await fetch(`/suppliers/delete/${supplierId}`, {
+      method: "DELETE"
+    });
+    if (response.ok) {
+      showToast("Supplier deleted successfully!");
+      closeDeleteSupplierModal();
+      loadSuppliers();
+      closeEditSupplierModal();
+    } else {
+      showToast("Failed to delete supplier.");
+    }
+  } catch (err) {
+    console.error("Error deleting supplier:", err);
+    showToast("Error deleting supplier.");
+  }
+}
+// ============================== CREATE SUPPLIER SECTION ==============================
+function openCreateSupplierModal() {
+  document.getElementById("createSupplierModal").style.display = "flex";
+}
+function closeCreateSupplierModal() {
+  document.getElementById("supplierForm").reset();
+  document.getElementById("createSupplierModal").style.display = "none";
+}
+async function submitNewSupplier(){
+  const name = document.getElementById("supplierNameInput").value.trim();
+  const contactEmail = document.getElementById("supplierEmailInput").value.trim();
+  const phone = document.getElementById("supplierPhoneInput").value.trim();
+  const address = document.getElementById("supplierAddressInput").value.trim();
+  if (!name || !contactEmail || !phone || !address) {
+    showToast("Please fill out all required fields.");
+    return;
+  }
+  if(!validateEmail(contactEmail)){
+    showToast("Please enter a valid email address.");
+    return;
+  }
+  if(!validatePhone(phone)){
+    showToast("Please enter a valid phone number.");
+    return;
+  }
+  try {
+    const response = await fetch("/suppliers/create_supplier", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, contactEmail, phone, address })
+    });
+    if (response.ok) {
+      showToast("Supplier created successfully!");
+      closeCreateSupplierModal();
+      loadSuppliers();      
+    } else {
+      showToast("Failed to create supplier.");
+    }
+  } catch (err) {
+    console.error("Error creating supplier:", err);
+    showToast("Error creating supplier.");
+  }
+}
+document.getElementById("submitSupplierBtn").addEventListener("click", submitNewSupplier);
+
 // ============================== CREATE PRODUCT SECTION ==============================
 function openCreateProductModal() {
   document.getElementById("createProductModal").style.display = "flex";
   loadSupplierNames(null, "createProductSupplierSelect");
 }
 function closeCreateProductModal() {
+  document.getElementById("createProductForm").reset();
   document.getElementById("createProductModal").style.display = "none";
 }
 
@@ -487,12 +649,14 @@ tabs.forEach(tab => {
       warehouseSection.style.display = "block";
       checkoutSection.style.display = "none";
       productsSection.style.display = "none";
+      suppliersSection.style.display = "none";
       loadWarehouses();
     } else if(tab.textContent.includes("Restock Orders")) {
       warehouseSection.style.display = "none";
       restockSection.style.display = "block";
       checkoutSection.style.display = "none";
       productsSection.style.display = "none";
+      suppliersSection.style.display = "none";
       loadRestockOrders();
     }
     else if(tab.textContent.includes("Checkouts")) {
@@ -500,6 +664,7 @@ tabs.forEach(tab => {
       restockSection.style.display = "none";
       checkoutSection.style.display = "block";
       productsSection.style.display = "none";
+      suppliersSection.style.display = "none";
       loadCheckouts();
     }
     else if(tab.textContent.includes("Products")) {
@@ -507,7 +672,16 @@ tabs.forEach(tab => {
       restockSection.style.display = "none";
       checkoutSection.style.display = "none";
       productsSection.style.display = "block";
+      suppliersSection.style.display = "none";
       loadProducts();
+    }
+    else if(tab.textContent.includes("Suppliers")) {
+      warehouseSection.style.display = "none";
+      restockSection.style.display = "none";
+      checkoutSection.style.display = "none";
+      productsSection.style.display = "none";
+      suppliersSection.style.display = "block";
+      loadSuppliers();
     }
   });
 });
@@ -738,6 +912,7 @@ function openCreateWarehouseModal() {
 
 // ============================== CLOSE CREATE WAREHOUSE MODAL ==============================
 document.getElementById("closeWarehouseModalBtn").addEventListener("click", () => {
+  document.getElementById("createWarehouseForm").reset();
   document.getElementById("createWarehouseModal").style.display = "none";
 });
 
@@ -1333,5 +1508,44 @@ function checkIfInStock(warehouseId, productId, requiredAmount) {
     });
 }
 
+function validateEmail(email) {
+  if (!email || email.length > 254 || email.includes(" ")) return false;
+  const parts = email.split("@");
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  if (!local || !domain || local.length > 64 || domain.length > 255) return false;
+  if (local.startsWith(".") || local.endsWith(".") || local.includes("..")) return false;
+  const labels = domain.split(".");
+  if (labels.length < 2 || domain.endsWith(".")) return false;
+  if (labels.some(label => label.length === 0 || label.length > 63)) return false;
+
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email.toLowerCase());
+}
+
+function validatePhone(phone) {
+  if (!phone) return false;
+  // Reject alphabet characters
+  if (/[a-zA-Z]/.test(phone)) return false;
+  // Remove formatting
+  const digits = phone.replace(/\D/g, "");
+  // Only allow 10–15 digits total
+  return digits.length >= 10 && digits.length <= 15;
+}
+
+
+function formatPhone(phone) {
+  if (!phone) return "";
+
+  // remove non-digits
+  const digits = phone.replace(/\D/g, "");
+
+  // only format if exactly 10 digits
+  if (digits.length === 10) {
+    return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;
+  }
+
+  return phone; // leave it unchanged otherwise
+}
 
 

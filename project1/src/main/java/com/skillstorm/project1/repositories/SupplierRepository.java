@@ -8,5 +8,5 @@ import com.skillstorm.project1.models.Supplier;
 
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
-    
+    boolean existsByName(String name);
 }
