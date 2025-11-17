@@ -70,7 +70,6 @@ public class ProductController {
             double price = Double.parseDouble(payload.get("price").toString());
             String category = payload.get("category").toString();
 
-            // supplierId may be null or empty
             Long supplierId = null;
             if (payload.get("supplierId") != null && !payload.get("supplierId").toString().isEmpty()) {
                 supplierId = Long.valueOf(payload.get("supplierId").toString());
@@ -84,27 +83,25 @@ public class ProductController {
             if (supplierId != null) {
                 Supplier supplier = supplierService.getSupplierById(supplierId);
                 product.setSupplier(supplier);
-            } 
-            else {
+            } else {
                 product.setSupplier(null);
             }
 
             Product created = productService.createProduct(product);
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } 
-        catch (NumberFormatException e) {
-            return ResponseEntity.internalServerError()
-                .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
-                .build();
-        }
+        catch (IllegalStateException e) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .header("Error", "Product name already exists")
+                        .build();
+            }
         catch (Exception e) {
             return ResponseEntity.internalServerError()
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
             .build();
-        }
     }
-
-
+    }
+    
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updated) {
         try {

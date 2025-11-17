@@ -108,6 +108,7 @@ async function loadProducts() {
       row.classList.add("clickable-row");
 
       row.innerHTML = `
+        <td>${p.productId * 12345}</td>
         <td>${p.productName}</td>
         <td>$${p.price}</td>
         <td>${p.category}</td>
@@ -152,13 +153,18 @@ async function submitNewProduct() {
         price: price, 
         supplierId: supplierId})
     });
+    console.log(response.status);
     if (response.ok) {
       showToast("Product created successfully!");
       closeCreateProductModal();
       loadProducts();
       loadWarehouses();
       loadTotalInventoryQuantityAndValue();
-    } else {
+    } 
+    else if(response.status === 409){
+      showToast("Product with this name already exists.", 3000);
+    }
+    else {
       showToast("Failed to create product.", 3000);
     }
   } catch (err) {
@@ -602,7 +608,7 @@ async function loadProductSelection() {
     productSelect.addEventListener("change", async (e) => {
       const productId = e.target.value;
       detailsDiv.innerHTML = "";
-      submitBtn.disabled = true;
+      submitBtn.disabled = false;
       if (!productId) return;
 
       try {
@@ -616,7 +622,10 @@ async function loadProductSelection() {
         detailsDiv.innerHTML = `
           <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
           <tbody>
-
+            <tr style="border-bottom:1px solid #333;">
+              <td style="padding:8px 6px; width:140px; font-weight:600;">Product SKU</td>
+              <td style="padding:8px 6px;">${product.productId * 12345}</td>
+            </tr>
             <tr style="border-bottom:1px solid #333;">
               <td style="padding:8px 6px; width:140px; font-weight:600;">Category</td>
               <td style="padding:8px 6px;">${product.category || "N/A"}</td>
@@ -659,12 +668,15 @@ async function loadProductSelection() {
         amountInput.addEventListener("input", () => {
           const amount = parseInt(amountInput.value || 0, 10);
           totalCost.textContent = (price * amount).toFixed(2);
-          submitBtn.disabled = amount <= 0;
         });
 
         submitBtn.onclick = async () => {
           const amount = parseInt(amountInput.value, 10);
-          if (isNaN(amount) || amount <= 0) return showToast("Please enter a valid amount.");
+          console.log(amount);
+          if (!amount|| amount <= 0) {
+            showToast("Please enter a valid amount.");
+            return;
+          }
 
           try {
             for (const wId of selectedWarehouses) {
@@ -707,10 +719,7 @@ async function loadProductSelection() {
 }
 
 // ============================== CLOSE MODAL ==============================
-function closeRestockModal(event) {
-  if (event && event.target && event.target.id !== "restockModal") {
-    return;
-  }
+function closeRestockModal() {
   document.getElementById("restockModal").style.display = "none";
 }
 
@@ -844,10 +853,7 @@ function openWarehouseInventoryModal(warehouseId, warehouseName) {
   document.getElementById("WarehouseInventoryModal").style.display = "flex";
   loadInventoryForWarehouse(warehouseId, warehouseName);
 }
-function closeWarehouseInventoryModal(event) {
-    if (event && event.target && event.target.id !== "WarehouseInventoryModal") {
-        return;
-    }
+function closeWarehouseInventoryModal() {
     document.getElementById("WarehouseInventoryModal").style.display = "none";
 }
 
@@ -864,18 +870,22 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
       body.innerHTML = `<tr><td colspan="6" style="text-align:center;">No inventory found.</td></tr>`;
       return;
     }
-  
     inventory.forEach(i => {
       const row = document.createElement("tr");
       const cleanedProductName = i.product.productName.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      // check if inventory is below minimum stock and add orange border if so
+      if (i.quantity < i.minimumStock) {
+        row.style.border = "2px solid orange";
+      }
       row.innerHTML = `
+        <td>${i.product.productId * 12345}</td>
         <td>${i.product.productName}</td>
         <td>${i.quantity}</td>
         <td>$${i.product.price}</td>
         <td>${i.product.category || "N/A"}</td>
         <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
         <td>${i.minimumStock}</td>
-        <td><button class="btn" style="padding:6px 12px;" onclick="openTransferInventoryModal(${i.inventoryId}, '${cleanedProductName}')">Transfer</button></td>
+        <td><button class="btn"onclick="openTransferInventoryModal(${i.inventoryId},${warehouseId},${i.product.productId},'${cleanedProductName}')">Transfer</button></td>        
         <td><button class="btn" style="background-color: Red; padding:6px 12px;" onclick="openDeleteInventoryItemModal(${i.inventoryId})">Delete</button></td>
       `;
       body.appendChild(row);
@@ -889,8 +899,14 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
 
 
 // ============================== TRANSFER INVENTORY SECTION ==============================
-async function openTransferInventoryModal(inventoryId, productName) {
+let inventoryToTransfer = null;
+let fromWarehouseId = null;
+let transferProductId = null;
+async function openTransferInventoryModal(inventoryId, fromWarehouse, productId, productName) {
     inventoryToTransfer = inventoryId; // store for confirm step
+    fromWarehouseId = fromWarehouse;
+    transferProductId = productId;
+
     document.getElementById("transferInventoryModal").style.display = "flex";
     document.getElementById("transferInventoryTitle").textContent =
     `Transfer Item: ${productName}`;
@@ -907,10 +923,7 @@ async function openTransferInventoryModal(inventoryId, productName) {
 }
 
 
-function closeTransferInventoryModal(event) {
-    if (event && event.target && event.target.id !== "transferInventoryModal") {
-        return;
-    }
+function closeTransferInventoryModal() {
     document.getElementById("transferInventoryModal").style.display = "none";
     document.getElementById("WarehouseInventoryModal").style.display = "none";
 }
@@ -937,6 +950,11 @@ async function confirmTransferInventory() {
               loadWarehouses();
               return;
             }
+      const inStock = await checkIfInStock(fromWarehouseId, transferProductId, amount);
+      if (inStock === false){
+          showToast("Insufficient stock to transfer the requested amount.", 3000);
+          return;
+      }
         await fetch(`/inventory/transfer/${inventoryToTransfer}/${newWarehouseId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -973,10 +991,7 @@ function openDeleteInventoryItemModal(inventoryId) {
     document.getElementById("deleteInventoryItemModal").style.display = "flex";
     document.getElementById("confirmDeleteInventoryItemBtn").onclick = () => {closeDeleteInventoryItemModal(); confirmDeleteInventoryItem(inventoryIdToDelete);};
 }
-function closeDeleteInventoryItemModal(event) {
-    if (event && event.target && event.target.id !== "deleteInventoryItemModal") {
-        return;
-    }
+function closeDeleteInventoryItemModal() {
     document.getElementById("deleteInventoryItemModal").style.display = "none";
 }
 
@@ -1025,10 +1040,7 @@ document.getElementById("confirmYesBtn").addEventListener("click", async () => {
 
 
 // ============================== CLOSE DELETE WAREHOUSE MODAL ==============================
-function closeDeleteWarehouseModal(event) {
-    if (event && event.target && event.target.id !== "deleteWarehouseModal") {
-        return;
-    }
+function closeDeleteWarehouseModal() {
     document.getElementById("deleteWarehouseModal").style.display = "none";
 }
 
@@ -1092,7 +1104,6 @@ async function openCheckoutModal() {
     <h2 style="margin-top:20px;">Select Product</h2>
     <select id="checkoutProductSelect" style="margin-top:10px;width:100%;padding:8px;">
       <option value="">-- Choose a product --</option>
-      ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
     </select>
 
     <div id="checkoutProductDetails" style="margin-top:20px;color:#ddd;font-size:0.9rem;"></div>
@@ -1126,11 +1137,34 @@ async function openCheckoutModal() {
     const productId = productSelect.value;
     const amount = parseInt(amountInput.value || 0);
 
-    submitBtn.disabled = !(warehouseId && productId && amount > 0);
+    submitBtn.disabled = false;
+    if (!warehouseId || !productId) {
+      submitBtn.disabled = true;
+    }
   }
 
   warehouseSelect.addEventListener("change", updateSubmitState);
   amountInput.addEventListener("input", updateSubmitState);
+
+  warehouseSelect.addEventListener("change", async () => {
+    const warehouseId = warehouseSelect.value;
+
+    // Reset product UI
+    productSelect.innerHTML = `<option value="">-- Choose a product --</option>`;
+    detailsDiv.innerHTML = "";
+    amountContainer.style.display = "none";
+    submitBtn.disabled = true;
+
+    if (!warehouseId) return;
+
+    // Fetch products ONLY in this warehouse
+    const inventory = await (await fetch(`/inventory/warehouse/${warehouseId}`)).json();
+
+    inventory.forEach(item => {
+      const p = item.product;
+      productSelect.innerHTML += `<option value="${p.productId}">${p.productName}</option>`;
+    });
+  });
 
   // When the user selects a product
   productSelect.addEventListener("change", async (e) => {
@@ -1151,7 +1185,10 @@ async function openCheckoutModal() {
     detailsDiv.innerHTML = `
       <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
         <tbody>
-
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Product SKU</td>
+            <td style="padding:8px 6px;">${product.productId * 12345}</td>
+          </tr>
           <tr style="border-bottom:1px solid #333;">
             <td style="padding:8px 6px; width:140px; font-weight:600;">Product Name</td>
             <td style="padding:8px 6px;">${product.productName}</td>
@@ -1186,10 +1223,7 @@ async function openCheckoutModal() {
 
 
 // ============================== CLOSE CHECKOUT MODAL ==============================
-function closeCheckoutModal(event) {
-  if (event && event.target && event.target.id !== "checkoutModal") {
-    return;
-  }
+function closeCheckoutModal() {
   document.getElementById("checkoutModal").style.display = "none";
 }
 
@@ -1201,6 +1235,15 @@ async function submitCheckout() {
   const email = currentUserEmail;
 
   try {
+    if(isNaN(amount) || amount <= 0){
+      showToast("Please enter a valid amount.", 3000);
+      return;
+    }
+    const inStock = await checkIfInStock(warehouseId, productId, amount);
+    if (!inStock) {
+      showToast("Not enough stock available.", 3000);
+      return;
+    }
     const response = await fetch(URL + "/checkouts/create_checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1211,7 +1254,6 @@ async function submitCheckout() {
         email
       })
     });
-
     if (response.ok) {
       await reduceInventory(warehouseId, productId, amount);
       showToast("Checkout successfull!");
@@ -1276,5 +1318,20 @@ function checkWarehouseCapacity(warehouseId, additionalAmount) {
     return false;
   });
 }
+
+function checkIfInStock(warehouseId, productId, requiredAmount) {
+  return fetch(`/inventory/warehouse/${warehouseId}`)
+    .then(res => res.json())
+    .then(inventoryItems => {
+      const item = inventoryItems.find(i => i.product.productId == productId);
+      const available = item ? item.quantity : 0;
+      return available >= requiredAmount;
+    })
+    .catch(err => {
+      console.error("Error checking stock:", err);
+      return false;
+    });
+}
+
 
 

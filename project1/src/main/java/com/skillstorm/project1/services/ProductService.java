@@ -32,6 +32,9 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
+        if (productRepository.existsByProductName(product.getProductName())) {
+            throw new IllegalStateException("DUPLICATE_PRODUCT_NAME");
+    }
         return productRepository.save(product);
     }
 

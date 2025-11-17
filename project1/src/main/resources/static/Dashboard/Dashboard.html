@@ -124,6 +124,7 @@
       <table id="productsTable">
         <thead>
           <tr>
+            <th>Product SKU</th>
             <th>Product Name</th>
             <th>Price</th>
             <th>Category</th>
@@ -251,8 +252,8 @@
 </div>
 
 <!-- CONFIRM DELETE PRODUCT MODAL -->
- <div id="deleteProductModal" class="modal" onclick="closeDeleteProductModal(event)">
-    <div style="background-color: red display:none;
+ <div id="deleteProductModal" class="modal">
+    <div style="background-color: red;
             position:absolute;
             top:50%; left:50%;
             transform:translate(-50%, -50%);
@@ -274,7 +275,7 @@
   </div>
 
   <!-- RESTOCK MODAL -->
-  <div id="restockModal" class="modal" onclick="closeRestockModal(event)">
+  <div id="restockModal" class="modal">
     <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
       <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
       <h2>Select Warehouses</h2>
@@ -430,7 +431,7 @@
 </div>
 
 <!-- CHECKOUT MODAL -->
-<div id="checkoutModal" class="modal" style="display:none;" onclick="closeCheckoutModal(event)">
+<div id="checkoutModal" class="modal" style="display:none;">
   <div class="modal-content" id="checkoutModalContent" onclick="event.stopPropagation();">
   </div>
 </div>
@@ -442,7 +443,7 @@
 
 
   <!-- VIEW WAREHOUSE INVENTORY MODAL -->
-  <div id="WarehouseInventoryModal" class="modal" style="display:none;" onclick="closeWarehouseInventoryModal(event)">
+  <div id="WarehouseInventoryModal" class="modal" style="display:none;">
     <div class="modal-content wide-modal" id="WarehouseInventoryModalContent" onclick="event.stopPropagation();">
       <button class="close-btn" onclick="closeWarehouseInventoryModal()" aria-label="Close">&times;</button>
       <h2 id="warehouseInventoryTitle">Warehouse Inventory</h2>
@@ -450,6 +451,7 @@
         <table id="warehouseInventoryTable">
           <thead>
             <tr>
+              <th>Item SKU</th>
               <th>Item Name</th>
               <th>Quantity</th>
               <th>Unit Price</th>
@@ -469,7 +471,7 @@
   </div>
 
 <!-- Transfer Inventory Modal -->
-<div id="transferInventoryModal" class="modal" style="display:none;" onclick="closeTransferInventoryModal(event)">
+<div id="transferInventoryModal" class="modal" style="display:none;">
   <div class="modal-content" id="transferInventoryModalContent" onclick="event.stopPropagation();">
       <button class="close-btn" onclick="closeTransferInventoryModal()" aria-label="Close">&times;</button>
       <h2 id="transferInventoryTitle">Transfer Inventory</h2>
@@ -488,7 +490,7 @@
 </div>
 
 <!-- DELETE INVENTORY ITEM CONFIRMATION MODAL -->
-<div id="deleteInventoryItemModal" class="modal" style="display:none;" onclick="closeDeleteInventoryItemModal(event)">
+<div id="deleteInventoryItemModal" class="modal" style="display:none;">
   <div class="modal-content" onclick="event.stopPropagation();" style="background-color:#7b0000;">
       
       <p style="margin-bottom:15px; color:#ddd; font-size:1rem; text-align:center;">

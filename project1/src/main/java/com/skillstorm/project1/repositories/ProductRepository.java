@@ -12,4 +12,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Custom queries later
     Product findByProductName(String productName);
     List<Product> findAllByOrderByProductNameAsc();
+    boolean existsByProductName(String productName);
 }
