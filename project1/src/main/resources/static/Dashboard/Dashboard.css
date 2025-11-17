@@ -225,3 +225,55 @@ tr:hover { background-color: #242424; }
   font-size:0.9rem;
   z-index:2000;
 }
+
+/* --- SEARCH BAR IN TABLES --- */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #888;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.search-bar {
+  padding: 10px 14px 10px 34px;
+  width: 250px;
+  background-color: #1c1c1c;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #f1f1f1;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-bar::placeholder {
+  color: #777;
+}
+
+.search-bar:focus {
+  border-color: #0078ff;
+  box-shadow: 0 0 0 2px rgba(0, 120, 255, 0.3);
+}
+
+.sort-arrow {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  margin-left: 6px;
+}
+
+th {
+  cursor: pointer;
+  user-select: none; 
+}
+
+th:hover .sort-arrow {
+  opacity: 1;
+}

@@ -52,16 +52,20 @@
     <!-- RESTOCK TABLE -->
     <div class="table-container" id="restockSection">
       <div class="actions">
-          <button class="btn" onclick="openRestockModal()">New Restock Order</button>
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInputRestocks" placeholder="Search..."class="search-bar"/>
+          </div>          
+        <button class="btn" onclick="openRestockModal()">New Restock Order</button>
       </div>
       <table id="restockTable">
         <thead>
           <tr>
-            <th>Restock ID</th>
-            <th>Item Restocked</th>
+            <th onclick="sortRestocks(0)">Restock ID <span class="sort-arrow">⇅</span></th>
+            <th onclick="sortRestocks(1)">Item Restocked <span class="sort-arrow">⇅</span></th>
             <th>Amount Ordered</th>
-            <th>Restock Date</th>
-            <th>Ordered By</th>
+            <th onclick="sortRestocks(3)">Restock Date <span class="sort-arrow">⇅</span></th>
+            <th onclick="sortRestocks(4)">Ordered By <span class="sort-arrow">⇅</span></th>
           </tr>
         </thead>
         <tbody id="restockTableBody">
@@ -75,6 +79,10 @@
 
       <!-- ACTION BAR -->
       <div class="actions">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInputWarehouses" placeholder="Search..."class="search-bar"/>
+          </div>      
           <button class="btn" style="background-color: Red" onclick="openDeleteWarehouseModal()">Delete Warehouse</button>
           <button class="btn" onclick="openCreateWarehouseModal()">New Warehouse</button>
       </div>
@@ -82,10 +90,10 @@
       <table id="warehouseTable">
         <thead>
           <tr>
-            <th>Warehouse Name</th>
-            <th>Location</th>
-            <th>Total Supply</th>
-            <th>Capacity</th>
+            <th onClick="sortWarehouses(0)">Warehouse Name <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortWarehouses(1)">Location <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortWarehouses(2)">Total Supply <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortWarehouses(3)">Capacity <span class="sort-arrow">⇅</span></th>
             <th>Edit Warehouse</th>
           </tr>
         </thead>
@@ -99,16 +107,20 @@
         <!-- CHECKOUTS TABLE -->
     <div class="table-container" id="checkoutSection" style="display: none;">
       <div class="actions">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInputCheckouts" placeholder="Search..."class="search-bar"/>
+          </div>  
           <button class="btn" onclick="openCheckoutModal()">New Checkout</button>
       </div>
       <table id="checkoutTable">
         <thead>
           <tr>
-            <th>Checkout ID</th>
-            <th>Item Checked Out</th>
+            <th onClick="sortCheckouts(0)">Checkout ID <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortCheckouts(1)">Item Checked Out <span class="sort-arrow">⇅</span></th>
             <th>Amount Checked Out</th>
-            <th>Checkout Date</th>
-            <th>Checked Out By</th>
+            <th onClick="sortCheckouts(3)">Checkout Date <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortCheckouts(4)">Checked Out By <span class="sort-arrow">⇅</span></th>
           </tr>
         </thead>
         <tbody id="checkoutTableBody">
@@ -120,21 +132,25 @@
     <!-- Products TABLE -->
     <div class="table-container" id="productsSection" style="display: none;">
       <div class="actions">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInputProducts" placeholder="Search..."class="search-bar"/>
+          </div>
           <button class="btn" onclick="openCreateProductModal()">New Product</button>
       </div>
       <table id="productsTable">
         <thead>
           <tr>
-            <th>Product SKU</th>
-            <th>Product Name</th>
-            <th>Price</th>
-            <th>Category</th>
-            <th>Supplier</th>
-            <th>Total Quantity</th>
+            <th onClick="sortProducts(0)">Product SKU <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortProducts(1)">Product Name <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortProducts(2)">Price <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortProducts(3)">Category <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortProducts(4)">Supplier <span class="sort-arrow">⇅</span></th>
+            <th onClick="sortProducts(5)">Total Quantity <span class="sort-arrow">⇅</span></th>
           </tr>
         </thead>
         <tbody id="productsTableBody">
-          <tr><td colspan="5" style="text-align:center;">Loading products...</td></tr>
+          <tr><td colspan="6" style="text-align:center;">Loading products...</td></tr>
         </tbody>
       </table>
     </div>
@@ -142,15 +158,19 @@
     <!-- SUPPLIERS TABLE -->
     <div class="table-container" id="suppliersSection" style="display: none;">
       <div class="actions">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInputSuppliers" placeholder="Search..."class="search-bar"/>
+          </div>
           <button class="btn" onclick="openCreateSupplierModal()">New Supplier</button>
       </div>
       <table id="suppliersTable">
         <thead>
           <tr>
-            <th>Supplier Name</th>
+            <th onClick="sortSuppliers(0)">Supplier Name <span class="sort-arrow">⇅</span></th>
             <th>Contact Email</th>
             <th>Phone</th>
-            <th>Address</th>
+            <th onClick="sortSuppliers(3)">Address <span class="sort-arrow">⇅</span></th>
           </tr>
         </thead>
         <tbody id="suppliersTableBody">

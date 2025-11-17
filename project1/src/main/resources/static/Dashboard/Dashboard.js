@@ -25,6 +25,10 @@ async function loadRestockOrders() {
       `;
       body.appendChild(row);
     });
+
+    // we need to do a filter when it loads to apply any existing search query
+    filterRestocks(document.getElementById("searchInputRestocks").value.trim().toLowerCase());
+
   } catch (error) {
     console.error("Error loading restock orders:", error);
     document.getElementById("restockTableBody").innerHTML =
@@ -73,6 +77,9 @@ async function loadWarehouses() {
     <span class="card-value">${warehousesNearCapacity}</span>`;
       body.appendChild(row);
     });
+    // we need to do a filter when it loads to apply any existing search query
+    filterWarehouses(document.getElementById("searchInputWarehouses").value.trim().toLowerCase());
+
   } catch (err) {
     console.error("Error loading warehouses:", err);
     document.getElementById("warehouseTableBody").innerHTML =
@@ -118,6 +125,10 @@ async function loadProducts() {
       `;
       body.appendChild(row);
     });
+
+    // we need to do a filter when it loads to apply any existing search query
+    filterProducts(document.getElementById("searchInputProducts").value.trim().toLowerCase());
+
   } catch (err) {
     console.error("Error loading warehouses:", err);
     document.getElementById("warehouseTableBody").innerHTML =
@@ -151,6 +162,10 @@ async function loadSuppliers() {
       `;
       body.appendChild(row);
     });
+
+    // we need to do a filter when it loads to apply any existing search query
+    filterSuppliers(document.getElementById("searchInputSuppliers").value.trim().toLowerCase());
+    
   } catch (err) {
     console.error("Error loading warehouses:", err);
     document.getElementById("warehouseTableBody").innerHTML =
@@ -576,6 +591,10 @@ async function loadCheckouts() {
       `;
       body.appendChild(row);
     });
+
+    // we need to do a filter when it loads to apply any existing search query
+    filterCheckouts(document.getElementById("searchInputCheckouts").value.trim().toLowerCase());
+
   } catch (err) {
     console.error("Error loading checkouts:", err);
     document.getElementById("checkoutTableBody").innerHTML =
@@ -1549,3 +1568,286 @@ function formatPhone(phone) {
 }
 
 
+// ============================== FILTERING SEARCH BAR ==============================
+
+// ============================== FILTERING RESTOCKS SECTION ==============================
+document.getElementById("searchInputRestocks").addEventListener("input", function () {
+  filterRestocks(this.value.trim().toLowerCase());
+});
+
+function filterRestocks(query) {
+  const rows = document.querySelectorAll("#restockTableBody tr");
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 5) return;
+
+    const restockId     = cells[0].innerText.toLowerCase();
+    const item          = cells[1].innerText.toLowerCase();
+    const orderedBy     = cells[4].innerText.toLowerCase();
+
+    let matches = false;
+
+    if (restockId.includes(query)) matches = true;
+    if (item.includes(query)) matches = true;
+    if (orderedBy.includes(query)) matches = true;
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+let restockSortDirection = {};
+function sortRestocks(colIndex) {
+  const tbody = document.getElementById("restockTableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  restockSortDirection[colIndex] = !restockSortDirection[colIndex];
+  const asc = restockSortDirection[colIndex];
+
+  const sorted = rows.sort((rowA, rowB) => {
+    const a = rowA.children[colIndex].innerText.trim();
+    const b = rowB.children[colIndex].innerText.trim();
+
+    // Restock ID (numeric)
+    if (colIndex === 0) {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      return asc ? numA - numB : numB - numA;
+    }
+
+    // Restock Date (MM/DD/YYYY)
+    if (colIndex === 3) {
+      const [mA, dA, yA] = a.split("/");
+      const [mB, dB, yB] = b.split("/");
+      const dateA = new Date(yA, mA - 1, dA);
+      const dateB = new Date(yB, mB - 1, dB);
+      return asc ? dateA - dateB : dateB - dateA;
+    }
+
+    // Default: text (Item Restocked, Ordered By)
+    const aa = a.toLowerCase();
+    const bb = b.toLowerCase();
+    return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
+  });
+
+  sorted.forEach(row => tbody.appendChild(row));
+}
+
+// ============================== FILTERING CHECKOUTS SECTION ==============================
+document.getElementById("searchInputCheckouts").addEventListener("input", function () {
+  filterCheckouts(this.value.trim().toLowerCase());
+});
+
+function filterCheckouts(query) {
+  const rows = document.querySelectorAll("#checkoutTableBody tr");
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 5) return;
+
+    const checkoutId     = cells[0].innerText.toLowerCase();
+    const item          = cells[1].innerText.toLowerCase();
+    const checkedOutBy     = cells[4].innerText.toLowerCase();
+
+    let matches = false;
+
+    if (checkoutId.includes(query)) matches = true;
+    if (item.includes(query)) matches = true;
+    if (checkedOutBy.includes(query)) matches = true;
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+let checkoutSortDirection = {};
+function sortCheckouts(colIndex) {
+  const tbody = document.getElementById("checkoutTableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  checkoutSortDirection[colIndex] = !checkoutSortDirection[colIndex];
+  const asc = checkoutSortDirection[colIndex];
+
+  const sorted = rows.sort((rowA, rowB) => {
+    const a = rowA.children[colIndex].innerText.trim();
+    const b = rowB.children[colIndex].innerText.trim();
+
+    // Checkout ID (numeric)
+    if (colIndex === 0) {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      return asc ? numA - numB : numB - numA;
+    }
+
+    // Checkout Date (MM/DD/YYYY)
+    if (colIndex === 3) {
+      const [mA, dA, yA] = a.split("/");
+      const [mB, dB, yB] = b.split("/");
+      const dateA = new Date(yA, mA - 1, dA);
+      const dateB = new Date(yB, mB - 1, dB);
+      return asc ? dateA - dateB : dateB - dateA;
+    }
+
+    // Default: text (Item Checked Out, Checked Out By)
+    const aa = a.toLowerCase();
+    const bb = b.toLowerCase();
+    return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
+  });
+
+  sorted.forEach(row => tbody.appendChild(row));
+}
+
+// ============================== FILTERING WAREHOUSES SECTION ==============================
+document.getElementById("searchInputWarehouses").addEventListener("input", function () {
+  filterWarehouses(this.value.trim().toLowerCase());
+});
+
+function filterWarehouses(query) {
+  const rows = document.querySelectorAll("#warehouseTableBody tr");
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 5) return;
+
+    const warehouseName     = cells[0].innerText.toLowerCase();
+    const location          = cells[1].innerText.toLowerCase();
+    let matches = false;
+
+    if (warehouseName.includes(query)) matches = true;
+    if (location.includes(query)) matches = true;
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+let warehouseSortDirection = {};
+function sortWarehouses(colIndex) {
+  const tbody = document.getElementById("warehouseTableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  // toggle asc/desc
+  warehouseSortDirection[colIndex] = !warehouseSortDirection[colIndex];
+  const asc = warehouseSortDirection[colIndex];
+
+  const sorted = rows.sort((rowA, rowB) => {
+    const a = rowA.children[colIndex].innerText.trim();
+    const b = rowB.children[colIndex].innerText.trim();
+
+    // Total Stock and Capacity (numeric)
+    if (colIndex === 2 || colIndex === 3) {
+      // Remove commas before parsing
+      const numA = parseInt(a.replace(/,/g, ""), 10);
+      const numB = parseInt(b.replace(/,/g, ""), 10);
+      return asc ? numA - numB : numB - numA;
+    }
+    // Default: text (Warehouse Name, Location)
+    const aa = a.toLowerCase();
+    const bb = b.toLowerCase();
+    return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
+  });
+
+  sorted.forEach(row => tbody.appendChild(row));
+}
+
+// ============================== FILTERING PRODUCTS SECTION ==============================
+document.getElementById("searchInputProducts").addEventListener("input", function () {
+  filterProducts(this.value.trim().toLowerCase());
+});
+
+function filterProducts(query) {
+  const rows = document.querySelectorAll("#productsTableBody tr");
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 5) return;
+
+    const productSKU    = cells[0].innerText.toLowerCase();
+    const productName   = cells[1].innerText.toLowerCase();
+    const productPrice  = cells[2].innerText.replace(/[^0-9.]/g, "").toLowerCase();
+    const productCategory = cells[3].innerText.toLowerCase();
+    const productSupplier = cells[4].innerText.toLowerCase();
+    let matches = false;
+
+    if (productSKU.includes(query)) matches = true;
+    if (productName.includes(query)) matches = true;
+    if (productPrice.includes(query)) matches = true;
+    if (productCategory.includes(query)) matches = true;
+    if (productSupplier.includes(query)) matches = true;
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+let productSortDirection = {};
+function sortProducts(colIndex) {
+  const tbody = document.getElementById("productsTableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  // toggle asc/desc
+  productSortDirection[colIndex] = !productSortDirection[colIndex];
+  const asc = productSortDirection[colIndex];
+
+  const sorted = rows.sort((rowA, rowB) => {
+    const a = rowA.children[colIndex].innerText.trim();
+    const b = rowB.children[colIndex].innerText.trim();
+
+    // Total Stock and Capacity (numeric)
+    if (colIndex === 0 || colIndex === 5) {
+      // Remove commas before parsing
+      const numA = parseInt(a.replace(/,/g, ""), 10);
+      const numB = parseInt(b.replace(/,/g, ""), 10);
+      return asc ? numA - numB : numB - numA;
+    }
+    // Price column. we need to ignore the $ sign
+    if(colIndex === 2){
+      const priceA = parseFloat(a.replace(/[^0-9.]/g, ""));
+      const priceB = parseFloat(b.replace(/[^0-9.]/g, ""));
+      return asc ? priceA - priceB : priceB - priceA;
+    }
+
+    // Default: text
+    const aa = a.toLowerCase();
+    const bb = b.toLowerCase();
+    return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
+  });
+
+  sorted.forEach(row => tbody.appendChild(row));
+}
+
+// ============================== FILTERING SUPPLIERS SECTION ==============================
+document.getElementById("searchInputSuppliers").addEventListener("input", function () {
+  filterSuppliers(this.value.trim().toLowerCase());
+});
+
+function filterSuppliers(query) {
+  const rows = document.querySelectorAll("#suppliersTableBody tr");
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    const supplierName   = cells[0].innerText.toLowerCase();
+    const contactEmail   = cells[1].innerText.toLowerCase();
+    const phone          = cells[2].innerText;
+    const formattedPhone  = phone.replace(/[^0-9]/g, "");
+    const address        = cells[3].innerText.toLowerCase();
+    let matches          = false;
+
+    if (supplierName.includes(query)) matches = true;
+    if (contactEmail.includes(query)) matches = true;
+    if (phone.includes(query) || formattedPhone.includes(query)) matches = true;
+    if (address.includes(query)) matches = true;
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+let supplierSortDirection = {};
+function sortSuppliers(colIndex) {
+  const tbody = document.getElementById("suppliersTableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  // toggle asc/desc
+  supplierSortDirection[colIndex] = !supplierSortDirection[colIndex];
+  const asc = supplierSortDirection[colIndex];
+
+  const sorted = rows.sort((rowA, rowB) => {
+    const a = rowA.children[colIndex].innerText.trim().toLowerCase();
+    const b = rowB.children[colIndex].innerText.trim().toLowerCase();
+
+    return asc ? a.localeCompare(b) : b.localeCompare(a);
+  });
+
+  sorted.forEach(row => tbody.appendChild(row));
+}
