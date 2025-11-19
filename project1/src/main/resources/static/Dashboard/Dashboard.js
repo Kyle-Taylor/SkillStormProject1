@@ -192,15 +192,15 @@ function openEditSupplierModal(id, name, email, phone, address) {
     const updatedPhone = document.getElementById("editSupplierPhone").value.trim();
     const updatedAddress = document.getElementById("editSupplierAddress").value.trim();
     if (!updatedName || !updatedEmail || !updatedPhone || !updatedAddress) {
-      showToast("Please fill out all required fields.");
+      showToast("Please fill out all required fields. ⚠️");
       return;
     }
     if(!validateEmail(updatedEmail)){
-      showToast("Please enter a valid email address.");
+      showToast("Please enter a valid email address. ⚠️");
       return;
     }
     if(!validatePhone(updatedPhone)){
-      showToast("Please enter a valid phone number.");
+      showToast("Please enter a valid phone number. ⚠️");
       return;
     }
     try {
@@ -270,15 +270,15 @@ async function submitNewSupplier(){
   const phone = document.getElementById("supplierPhoneInput").value.trim();
   const address = document.getElementById("supplierAddressInput").value.trim();
   if (!name || !contactEmail || !phone || !address) {
-    showToast("Please fill out all required fields.");
+    showToast("Please fill out all required fields. ⚠️");
     return;
   }
   if(!validateEmail(contactEmail)){
-    showToast("Please enter a valid email address.");
+    showToast("Please enter a valid email address. ⚠️");
     return;
   }
   if(!validatePhone(phone)){
-    showToast("Please enter a valid phone number.");
+    showToast("Please enter a valid phone number. ⚠️");
     return;
   }
   try {
@@ -317,7 +317,7 @@ async function submitNewProduct() {
   const price = parseFloat(document.getElementById("productPriceInput").value);
   const supplierId = document.getElementById("createProductSupplierSelect").value || null;
   if (!name || !category || !price) {
-    showToast("Please fill out all fields.");
+    showToast("Please fill out all fields. ⚠️");
     return;
   }
   try {
@@ -396,7 +396,7 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
     const updatedSupplierId = document.getElementById("editProductSupplierSelect").value || null;
     
     if (!updatedName || !updatedCategory || isNaN(updatedPrice)) {
-      showToast("Please fill out all fields.");
+      showToast("Please fill out all fields. ⚠️");
       return;
     }
     try {
@@ -542,7 +542,7 @@ document.getElementById("submitEditWarehouseBtn").addEventListener("click", asyn
   const capacity = Number(document.getElementById("editWarehouseCapacity").value);
 
   if (!name || !location || isNaN(capacity)) {
-    showToast("Please fill out all fields.");
+    showToast("Please fill out all fields. ⚠️");
     return;
   }
 
@@ -948,7 +948,7 @@ document.getElementById("submitWarehouseBtn").addEventListener("click", async ()
   const capacity = Number(document.getElementById("warehouseCapacityInput").value);
 
   if (!name || !location || isNaN(capacity)) {
-    showToast("Please fill out all fields.");
+    showToast("Please fill out all fields. ⚠️");
     return;
   }
 
@@ -1066,6 +1066,8 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
     }
     inventory.forEach(i => {
       const row = document.createElement("tr");
+      row.setAttribute("onclick", `openEditInventoryLocationModal(${i.inventoryId}, ${warehouseId}, '${warehouseName}', '${i.warehouseLocation || ""}')`);
+      row.classList.add("clickable-row");
       const cleanedProductName = i.product.productName.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       // check if inventory is below minimum stock and add orange border if so
       if (i.quantity < i.minimumStock) {
@@ -1078,6 +1080,7 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
         <td>$${i.product.price}</td>
         <td>${i.product.category || "N/A"}</td>
         <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
+        <td>Shelf: ${i.warehouseLocation || "0"}</td>
         <td>${i.minimumStock}</td>
         <td><button class="btn"onclick="openTransferInventoryModal(${i.inventoryId},${warehouseId},${i.product.productId},'${cleanedProductName}')">Transfer</button></td>        
         <td><button class="btn" style="background-color: Red; padding:6px 12px;" onclick="openDeleteInventoryItemModal(${i.inventoryId})">Delete</button></td>
@@ -1090,6 +1093,46 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
       `<tr><td colspan="6" style="text-align:center;color:red;">Error loading data</td></tr>`;
   }
 }
+
+// ============================== EDIT INVENTORY LOCATION ==============================
+let editingInventoryId = null;
+let currentWarehouseId = null;
+let currentWarehouseName = null;
+function openEditInventoryLocationModal(inventoryId, warehouseId, warehouseName, warehouseLocation) {
+  editingInventoryId = inventoryId;
+  currentWarehouseId = warehouseId;
+  currentWarehouseName = warehouseName;
+  document.getElementById("editInventoryLocationModal").style.display = "flex";
+  document.getElementById("editInventoryLocationInput").value = warehouseLocation || "";
+}
+
+function closeEditInventoryLocationModal() {
+    document.getElementById("editInventoryLocationModal").style.display = "none";
+}
+
+document.getElementById("confirmEditInventoryBtn").addEventListener("click", async () => {
+  const newLocation = document.getElementById("editInventoryLocationInput").value.trim();
+
+  try {
+    const response = await fetch(`/inventory/update_location/${editingInventoryId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ warehouseLocation: Number(newLocation) })
+    });
+
+    if (response.ok) {
+      showToast("Inventory location updated successfully!");
+      closeEditInventoryLocationModal();
+      loadWarehouses();
+      loadInventoryForWarehouse(currentWarehouseId, currentWarehouseName);
+    } else {
+      showToast("Failed to update inventory location.", 3000);
+    }
+  } catch (err) {
+    console.error("Error updating inventory location:", err);
+    showToast("Error updating inventory location.", 3000);
+  }
+});
 
 
 // ============================== TRANSFER INVENTORY SECTION ==============================
@@ -1128,12 +1171,12 @@ async function confirmTransferInventory() {
     const newWarehouseId = document.getElementById("transferToWarehouseSelect").value;
 
     if (!amount || amount <= 0) {
-        showToast("Please enter a valid amount to transfer.");
+        showToast("Please enter a valid amount to transfer. ⚠️");
         return;
     }
 
     if (!newWarehouseId) {
-        showToast("Select a warehouse to transfer to.");
+        showToast("Select a warehouse to transfer to. ⚠️");
         return;
     }
 
@@ -1195,7 +1238,7 @@ document.getElementById("submitDeleteWarehouseBtn").addEventListener("click", ()
     const selected = document.querySelectorAll("input[name='deleteWarehouse']:checked");
 
     if (selected.length === 0) {
-        showToast("Please select at least one warehouse to delete.");
+        showToast("Please select at least one warehouse to delete. ⚠️");
         return;
     }
 
@@ -1430,12 +1473,12 @@ async function submitCheckout() {
 
   try {
     if(isNaN(amount) || amount <= 0){
-      showToast("Please enter a valid amount.", 3000);
+      showToast("Please enter a valid amount. ⚠️", 3000);
       return;
     }
     const inStock = await checkIfInStock(warehouseId, productId, amount);
     if (!inStock) {
-      showToast("Not enough stock available.", 3000);
+      showToast("Not enough stock available. ⚠️", 3000);
       return;
     }
     const response = await fetch(URL + "/checkouts/create_checkout", {

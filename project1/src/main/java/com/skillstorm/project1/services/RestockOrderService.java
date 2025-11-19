@@ -52,7 +52,7 @@ public class RestockOrderService {
         // Find or create the inventory record
         Inventory inventory = inventoryRepository.findByWarehouse_WarehouseIdAndProduct_ProductId(warehouseId, productId);
         if (inventory == null) {
-            inventory = new Inventory(warehouse, product, 0, 0);
+            inventory = new Inventory(warehouse, product, 0, 0, 0);
         }
 
         // Update quantity and timestamp

@@ -135,7 +135,7 @@ public class InventoryController {
     }
 
     // ==============================================
-    // UPDATE INVENTORY RECORD
+    // Reduce INVENTORY RECORD
     // ==============================================
     @PutMapping("/reduce")
     public ResponseEntity<Void> reduceInventory(@RequestBody Map<String, Object> payload) {
@@ -187,5 +187,11 @@ public class InventoryController {
     inventoryService.transferInventory(inventory, newWarehouse, amount);
 }
 
+    @PutMapping("/update_location/{inventoryId}")
+    public ResponseEntity<Void> updateInventoryLocation(@PathVariable Long inventoryId, @RequestBody Map<String, Object> request) {
+        int newLocation = (int) request.get("warehouseLocation");
+        inventoryService.updateInventoryLocation(inventoryId, newLocation);
+        return ResponseEntity.ok().build();
+    }
 
 }

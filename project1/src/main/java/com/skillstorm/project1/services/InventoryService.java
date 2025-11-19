@@ -27,7 +27,7 @@ public class InventoryService {
     }
 
     public List<Inventory> getInventoryByWarehouse(Long warehouseId) {
-        return inventoryRepository.findByWarehouse_WarehouseId(warehouseId);
+        return inventoryRepository.findByWarehouse_WarehouseIdOrderByProduct_ProductNameAsc(warehouseId);
     }
 
     public List<Inventory> getInventoryByProduct(Long productId) {
@@ -91,10 +91,18 @@ public class InventoryService {
                 targetWarehouse,
                 source.getProduct(),
                 amount,
-                source.getMinimumStock()
+                source.getMinimumStock(),
+                source.getWarehouseLocation()
         );
         inventoryRepository.save(newInv);
     }
 }
 
+    public void updateInventoryLocation(Long inventoryId, int newLocation) {
+        Inventory inventory = inventoryRepository.findById(inventoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Inventory record not found with ID " + inventoryId));
+
+        inventory.setWarehouseLocation(newLocation);
+        inventoryRepository.save(inventory);
+    }
 }
