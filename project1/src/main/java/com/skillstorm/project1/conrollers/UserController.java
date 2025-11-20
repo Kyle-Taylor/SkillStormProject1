@@ -22,13 +22,26 @@ import jakarta.servlet.http.HttpSession;
 @CrossOrigin(origins = "*")
 public class UserController {
 
+    /**
+     * Service layer for accessing and modifying user data.
+     */
     private final UserService userService;
     
+    /**
+     * Constructor-based dependency injection for UserService.
+     *
+     * @param userService the service used for all user-related operations
+     */
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    // Get all users (read-only)
+    /**
+     * Returns all users in the system.
+     * This endpoint is read-only.
+     *
+     * @return 200 OK with a list of users, or 500 on error
+     */
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         try {
@@ -41,6 +54,12 @@ public class UserController {
         }
     }
 
+    /**
+     * Retrieves the currently logged-in user from the session.
+     *
+     * @param session current HTTP session
+     * @return 200 OK with the user, or 401 if no user is logged in
+     */
     @GetMapping("/current-user")
     public ResponseEntity<?> getCurrentUser(HttpSession session) {
         Object user = session.getAttribute("user");
@@ -50,7 +69,14 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-
+    /**
+     * Attempts to authenticate a user with the provided email and password.
+     * On success, the authenticated user is stored in the session.
+     *
+     * @param loginRequest user object containing email and password
+     * @param session active HTTP session
+     * @return 200 OK on success, or 401 if credentials are invalid
+     */
     @PostMapping("/login")
     public ResponseEntity<Void> loginUser(@RequestBody User loginRequest, HttpSession session) {
         Optional<User> foundUser = userService.findByEmail(loginRequest.getEmail());
@@ -65,13 +91,16 @@ public class UserController {
                 .build();
     }
 
-
+    /**
+     * Logs out the current user by invalidating the session.
+     *
+     * @param session active HTTP session
+     * @return 200 OK after logout
+     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpSession session) {
         session.invalidate();
         return ResponseEntity.ok().build();
     }
-
-
 
 }

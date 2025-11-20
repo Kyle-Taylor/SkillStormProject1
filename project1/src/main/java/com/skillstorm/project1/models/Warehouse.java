@@ -11,6 +11,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+/**
+ * Represents a warehouse location that stores inventory.
+ * Each warehouse has a name, location, and capacity limit.
+ * 
+ * A warehouse can contain multiple {@link Inventory} records.
+ */
 @Entity
 @Table(name = "warehouses")
 public class Warehouse {
@@ -28,13 +34,25 @@ public class Warehouse {
     @Column(nullable = false)
     private int capacity;
 
-
+    /**
+     * Inventory items stored in this warehouse.
+     * Cascade ALL ensures the inventory rows are removed when a warehouse is deleted.
+     */
     @OneToMany(mappedBy = "warehouse", cascade = CascadeType.ALL)
     private List<Inventory> inventoryItems;
 
-    // Constructors
+    /**
+     * Default constructor.
+     */
     public Warehouse() {}
 
+    /**
+     * Creates a new Warehouse instance.
+     *
+     * @param name     Warehouse name
+     * @param location Warehouse location
+     * @param capacity Max storage capacity
+     */
     public Warehouse(String name, String location, int capacity) {
         this.name = name;
         this.location = location;
@@ -42,6 +60,7 @@ public class Warehouse {
     }
 
     // Getters and Setters
+
     public Long getWarehouseId() { return warehouseId; }
     public void setWarehouseId(Long warehouseId) { this.warehouseId = warehouseId; }
 

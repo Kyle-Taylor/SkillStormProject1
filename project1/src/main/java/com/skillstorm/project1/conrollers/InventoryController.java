@@ -23,13 +23,24 @@ import com.skillstorm.project1.services.WarehouseService;
 @RestController
 @RequestMapping("/inventory")
 @CrossOrigin(origins = "*")
+/**
+ * Controller providing REST endpoints for managing inventory records.
+ * Handles CRUD operations, filtering, stock checks, and warehouse transfers.
+ */
 public class InventoryController {
 
+    /** Service layer for inventory business logic. */
     private final InventoryService inventoryService;
 
+    /** Service layer for warehouse operations. */
     private final WarehouseService warehouseService;
 
-    // Constructor-based injection
+    /**
+     * Constructor-based dependency injection.
+     *
+     * @param inventoryService service handling inventory operations
+     * @param warehouseService service handling warehouse lookups and updates
+     */
     public InventoryController(InventoryService inventoryService, WarehouseService warehouseService) {
         this.inventoryService = inventoryService;
         this.warehouseService = warehouseService;
@@ -38,6 +49,12 @@ public class InventoryController {
     // ==============================================
     // GET ALL INVENTORY
     // ==============================================
+
+    /**
+     * Retrieves all inventory records in the system.
+     *
+     * @return list of all {@link Inventory} items
+     */
     @GetMapping
     public ResponseEntity<List<Inventory>> findAllInventory() {
         try {
@@ -53,6 +70,13 @@ public class InventoryController {
     // ==============================================
     // GET INVENTORY BY ID
     // ==============================================
+
+    /**
+     * Retrieves a specific inventory record by its ID.
+     *
+     * @param id unique ID of the inventory record
+     * @return inventory record if found
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Inventory> findInventoryById(@PathVariable Long id) {
         try {
@@ -71,8 +95,15 @@ public class InventoryController {
     }
 
     // ==============================================
-    // GET INVENTORY BY WAREHOUSE ****
+    // GET INVENTORY BY WAREHOUSE
     // ==============================================
+
+    /**
+     * Retrieves all inventory records associated with a specific warehouse.
+     *
+     * @param warehouseId warehouse ID
+     * @return list of inventory items stored in that warehouse
+     */
     @GetMapping("/warehouse/{warehouseId}")
     public ResponseEntity<List<Inventory>> findByWarehouse(@PathVariable Long warehouseId) {
         try {
@@ -88,6 +119,13 @@ public class InventoryController {
     // ==============================================
     // GET INVENTORY BY PRODUCT
     // ==============================================
+
+    /**
+     * Retrieves all inventory rows that contain a specific product.
+     *
+     * @param productId product ID
+     * @return list of related inventory items
+     */
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<Inventory>> findByProduct(@PathVariable Long productId) {
         try {
@@ -101,8 +139,14 @@ public class InventoryController {
     }
 
     // ==============================================
-    // GET STOCK BELOW MIN COUNT
+    // GET STOCK BELOW MINIMUM
     // ==============================================
+
+    /**
+     * Returns all inventory items with quantity lower than their minimum stock level.
+     *
+     * @return list of low-stock inventory records
+     */
     @GetMapping("/below-minimum")
     public ResponseEntity<List<Inventory>> findBelowMinimumStock() {
         try {
@@ -116,8 +160,15 @@ public class InventoryController {
     }
 
     // ==============================================
-    // CREATE INVENTORY RECORD
+    // CREATE INVENTORY
     // ==============================================
+
+    /**
+     * Creates a new inventory record.
+     *
+     * @param inventory inventory object to create
+     * @return created inventory row
+     */
     @PostMapping
     public ResponseEntity<Inventory> createInventory(@RequestBody Inventory inventory) {
         try {
@@ -135,8 +186,15 @@ public class InventoryController {
     }
 
     // ==============================================
-    // Reduce INVENTORY RECORD
+    // REDUCE INVENTORY
     // ==============================================
+
+    /**
+     * Reduces inventory quantity for a given warehouse + product combination.
+     *
+     * @param payload contains warehouseId, productId, and amount
+     * @return empty OK response on success
+     */
     @PutMapping("/reduce")
     public ResponseEntity<Void> reduceInventory(@RequestBody Map<String, Object> payload) {
 
@@ -150,8 +208,15 @@ public class InventoryController {
     }
 
     // ==============================================
-    // DELETE INVENTORY RECORD
+    // DELETE INVENTORY
     // ==============================================
+
+    /**
+     * Deletes an inventory record.
+     *
+     * @param id inventory ID
+     * @return HTTP 204 on success
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteInventory(@PathVariable Long id) {
         try {
@@ -169,24 +234,38 @@ public class InventoryController {
     }
 
     // ==============================================
-    // TRANSFER INVENTORY RECORD TO NEW WAREHOSUE
+    // TRANSFER INVENTORY
     // ==============================================
+
+    /**
+     * Transfers a quantity of inventory from one warehouse record to another warehouse.
+     *
+     * @param inventoryId ID of inventory record being transferred from
+     * @param newWarehouseId destination warehouse ID
+     * @param request contains the amount to transfer
+     */
     @PutMapping("/transfer/{inventoryId}/{newWarehouseId}")
     public void transferInventory(@PathVariable Long inventoryId,@PathVariable Long newWarehouseId,@RequestBody Map<String, Object> request) {
-    int amount = (int) request.get("amount");
-    // Get the starting inventory row
-    Inventory inventory = inventoryService.getInventoryById(inventoryId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                    "Inventory record not found with ID " + inventoryId));
-    // Validate amount
-    if (amount <= 0 || amount > inventory.getQuantity()) {
-        throw new IllegalArgumentException("Invalid transfer amount: " + amount);
-    }
-    // Get target warehouse
-    Warehouse newWarehouse = warehouseService.getWarehouseById(newWarehouseId);
-    inventoryService.transferInventory(inventory, newWarehouse, amount);
-}
+        int amount = (int) request.get("amount");
+        Inventory inventory = inventoryService.getInventoryById(inventoryId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Inventory record not found with ID " + inventoryId));
 
+        if (amount <= 0 || amount > inventory.getQuantity()) {
+            throw new IllegalArgumentException("Invalid transfer amount: " + amount);
+        }
+
+        Warehouse newWarehouse = warehouseService.getWarehouseById(newWarehouseId);
+        inventoryService.transferInventory(inventory, newWarehouse, amount);
+    }
+
+    /**
+     * Updates warehouse location and minimum stock for an inventory record.
+     *
+     * @param inventoryId ID of inventory record
+     * @param request map containing warehouseLocation and minimumStock values
+     * @return HTTP 200 on success
+     */
     @PutMapping("/update_locationAndMinStock/{inventoryId}")
     public ResponseEntity<Void> updateInventoryLocation(@PathVariable Long inventoryId, @RequestBody Map<String, Object> request) {
         int newLocation = (int) request.get("warehouseLocation");

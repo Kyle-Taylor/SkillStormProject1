@@ -15,29 +15,60 @@ import jakarta.persistence.Table;
 @Table(name = "checkouts")
 public class Checkout {
 
+    /**
+     * Primary key for the checkout record.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long checkoutId;
 
+    /**
+     * Warehouse where the product is checked out from.
+     * Cannot be null.
+     */
     @ManyToOne
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
+    /**
+     * Product that was checked out.
+     * Cannot be null.
+     */
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    /**
+     * Quantity of the product being checked out.
+     */
     @Column(nullable = false)
     private int amount;
 
+    /**
+     * Timestamp for when the checkout occurred.
+     * Defaults to the current system time.
+     */
     private LocalDateTime checkoutDate = LocalDateTime.now();
 
+    /**
+     * Email of the user who performed the checkout.
+     */
     @Column(name = "user_email")
     private String userEmail;
 
-    // Constructors
+    /**
+     * Default no-args constructor required by JPA.
+     */
     public Checkout() {}
 
+    /**
+     * Convenience constructor for creating a checkout record.
+     *
+     * @param warehouse warehouse the product was taken from
+     * @param product product being checked out
+     * @param amount quantity checked out
+     * @param userEmail email of the user performing the checkout
+     */
     public Checkout(Warehouse warehouse, Product product, int amount, String userEmail) {
         this.warehouse = warehouse;
         this.product = product;
@@ -46,6 +77,7 @@ public class Checkout {
     }
 
     // Getters and Setters
+
     public Long getCheckoutId() { return checkoutId; }
     public void setCheckoutId(Long checkoutId) { this.checkoutId = checkoutId; }
 

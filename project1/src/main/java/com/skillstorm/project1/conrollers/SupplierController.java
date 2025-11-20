@@ -18,20 +18,31 @@ import org.springframework.web.bind.annotation.RestController;
 import com.skillstorm.project1.models.Supplier;
 import com.skillstorm.project1.services.SupplierService;
 
-
-
-
 @RestController
 @RequestMapping("/suppliers")
 @CrossOrigin(origins = "*")
 public class SupplierController {
-    // injection for supplierService
+
+    /** 
+     * Service used to perform CRUD operations on Supplier entities.
+     */
     private final SupplierService supplierService;
+
+    /**
+     * Constructor for dependency injection.
+     * 
+     * @param supplierService the SupplierService to use
+     */
     public SupplierController(SupplierService supplierService) {
         this.supplierService = supplierService;
     }
 
-    // Get supplier by ID
+    /**
+     * Retrieves a supplier by its ID.
+     *
+     * @param id the supplier ID
+     * @return the Supplier object, or null if not found or error occurs
+     */
     @GetMapping("/{id}")
     public Supplier getSupplierById(@PathVariable Long id) {
         try {
@@ -41,7 +52,13 @@ public class SupplierController {
         }
     }
 
-    //put request to edit supplier
+    /**
+     * Updates an existing supplier.
+     *
+     * @param id the supplier ID
+     * @param payload a map containing supplier fields to update
+     * @return ResponseEntity containing the updated supplier or an error response
+     */
     @PutMapping("/edit_supplier/{id}")
     public ResponseEntity<Supplier> editSupplier(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         try {
@@ -63,7 +80,11 @@ public class SupplierController {
         }
     }
 
-    // Get all suppliers
+    /**
+     * Retrieves all suppliers in the system.
+     *
+     * @return ResponseEntity containing a list of all suppliers or an error response
+     */
     @GetMapping()
     public ResponseEntity<List<Supplier>> getAllSuppliers() {
         try {
@@ -75,6 +96,12 @@ public class SupplierController {
         }
     }
     
+    /**
+     * Deletes a supplier by ID.
+     *
+     * @param id the supplier ID
+     * @return ResponseEntity with no content or an error response
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) {
         try {
@@ -87,6 +114,12 @@ public class SupplierController {
         }
     }
     
+    /**
+     * Creates a new supplier.
+     *
+     * @param payload a map containing supplier fields
+     * @return ResponseEntity with the created supplier or an error response
+     */
     @PostMapping("/create_supplier")
     public ResponseEntity<Supplier> createSupplier(@RequestBody Map<String, Object> payload) {
         try {

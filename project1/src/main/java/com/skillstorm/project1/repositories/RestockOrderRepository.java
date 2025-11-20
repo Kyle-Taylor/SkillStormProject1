@@ -10,6 +10,11 @@ import com.skillstorm.project1.models.RestockOrder;
 @Repository
 public interface RestockOrderRepository extends JpaRepository<RestockOrder, Long> {
 
-    // Find all restocks by a specific warehouse
+    /**
+     * Retrieves all restock orders for a specific warehouse.
+     *
+     * @param warehouseId the warehouse ID to filter by
+     * @return list of restock orders assigned to the warehouse
+     */
     List<RestockOrder> findAllByWarehouse_WarehouseId(Long warehouseId);
 }

@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.skillstorm.project1.models.Warehouse;
 import com.skillstorm.project1.services.WarehouseService;
 
-
-
-
 @RestController
 @RequestMapping("/warehouses")
 @CrossOrigin(origins = "*")
@@ -28,13 +25,20 @@ public class WarehouseController {
 
     private final WarehouseService warehouseService;
 
+    /**
+     * Constructor-based injection for WarehouseService.
+     *
+     * @param warehouseService service used for warehouse operations
+     */
     public WarehouseController(WarehouseService warehouseService) {
         this.warehouseService = warehouseService;
     }
 
-    // ==============================================
-    // GET ALL WAREHOUSES
-    // ==============================================
+    /**
+     * Retrieves all warehouses including their total inventory values.
+     *
+     * @return list of warehouses wrapped in a ResponseEntity
+     */
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> findAllWarehouses() {
         try {
@@ -44,9 +48,13 @@ public class WarehouseController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    // ==============================================
-    // CREATE WAREHOUSE
-    // ==============================================
+
+    /**
+     * Creates a new warehouse.
+     *
+     * @param payload JSON containing name, location, and capacity
+     * @return created warehouse
+     */
     @PostMapping("/create_warehouse")
     public ResponseEntity<Warehouse> createWarehouse(@RequestBody Map<String, Object> payload) {
         try {
@@ -60,18 +68,30 @@ public class WarehouseController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
+
+    /**
+     * Deletes a warehouse by its ID.
+     *
+     * @param id warehouse ID
+     * @return no-content response if successful
+     */
     @DeleteMapping("/delete_warehouse/{id}")
     public ResponseEntity<Void> deleteWarehouse(@PathVariable Long id) {
-            try {
-                warehouseService.deleteWarehouse(id);
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.internalServerError().build();
-            }
+        try {
+            warehouseService.deleteWarehouse(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.internalServerError().build();
         }
+    }
 
-    //put request to edit warehouse
+    /**
+     * Updates an existing warehouse.
+     *
+     * @param id warehouse ID
+     * @param payload JSON containing updated name, location, and capacity
+     * @return updated warehouse
+     */
     @PutMapping("/edit_warehouse/{id}")
     public ResponseEntity<Warehouse> editWarehouse(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         try {
@@ -87,7 +107,12 @@ public class WarehouseController {
         }
     }
 
-    // get warehouse by id
+    /**
+     * Retrieves a single warehouse by its ID.
+     *
+     * @param id warehouse ID
+     * @return warehouse wrapped in ResponseEntity
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Warehouse> getWarehouseById(@PathVariable Long id) {
         try {

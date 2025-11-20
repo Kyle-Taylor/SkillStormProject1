@@ -25,18 +25,32 @@ import com.skillstorm.project1.services.SupplierService;
 @CrossOrigin(origins = "*")
 public class ProductController {
 
-    //injection for productService
+    /** Service used for product operations. */
     private final ProductService productService;
+
+    /** Service used for supplier lookups and assignments. */
     private final SupplierService supplierService;
+
+    /**
+     * Constructor-based injection for ProductService and SupplierService.
+     *
+     * @param productService  service handling product logic
+     * @param supplierService service handling supplier logic
+     */
     public ProductController(ProductService productService, SupplierService supplierService){
         this.productService = productService;
         this.supplierService = supplierService;
     }
 
+    /**
+     * Retrieves all products stored in the database.
+     *
+     * @return ResponseEntity containing a list of all products or an error response
+     */
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
         try {
-            return new ResponseEntity<>(productService.getAllProducts(),HttpStatus.OK);
+            return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
@@ -44,14 +58,20 @@ public class ProductController {
         }
     }
 
+    /**
+     * Retrieves a specific product by its ID.
+     *
+     * @param id ID of the target product
+     * @return ResponseEntity containing the product or an error response
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         try {
             Product product = productService.getProductById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found with ID " + id));
-        return new ResponseEntity<>(product, HttpStatus.OK);
-        } 
-        catch (IllegalArgumentException e){
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .header("Error: ", e.getMessage())
             .build();
@@ -63,6 +83,12 @@ public class ProductController {
         }
     }
 
+    /**
+     * Creates a new product using the provided request payload.
+     *
+     * @param payload incoming JSON map containing product values
+     * @return ResponseEntity containing the created product or an error response
+     */
     @PostMapping("/create_product")
     public ResponseEntity<Product> createProduct(@RequestBody Map<String, Object> payload) {
         try {
@@ -89,19 +115,26 @@ public class ProductController {
 
             Product created = productService.createProduct(product);
             return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } 
+        }
         catch (IllegalStateException e) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .header("Error", "Product name already exists")
-                        .build();
-            }
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .header("Error", "Product name already exists")
+                    .build();
+        }
         catch (Exception e) {
             return ResponseEntity.internalServerError()
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
             .build();
+        }
     }
-    }
-    
+
+    /**
+     * Updates an existing product by replacing it with the provided Product object.
+     *
+     * @param id      ID of the product to update
+     * @param updated product object containing updated values
+     * @return ResponseEntity containing the updated product or an error response
+     */
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updated) {
         try {
@@ -111,17 +144,21 @@ public class ProductController {
             .header("Error: ", "Sorry! We have an internal Error! Please check back later.")
             .build();
         }
-        
     }
 
+    /**
+     * Deletes a product by its ID.
+     *
+     * @param id ID of the product to delete
+     * @return ResponseEntity indicating the outcome of the delete request
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-
         try {
             productService.deleteProduct(id);
             return ResponseEntity.noContent().build();
-        } 
-        catch (IllegalArgumentException e){
+        }
+        catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
             .header("Error: ", "Product not found with ID " + id)
             .build();
@@ -133,18 +170,27 @@ public class ProductController {
         }
     }
 
-    //put request to edit product
+    /**
+     * Updates product fields using a payload map instead of a full Product object.
+     *
+     * @param id      ID of the product to modify
+     * @param payload incoming JSON containing updated product fields
+     * @return ResponseEntity with updated product or an error response
+     */
     @PutMapping("/edit_product/{id}")
     public ResponseEntity<Product> editProduct(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         try {
-            Product updated = productService.editProduct(id,
+            Product updated = productService.editProduct(
+                id,
                 payload.get("productName").toString(),
                 payload.get("category").toString(),
                 Double.parseDouble(payload.get("price").toString()),
                 Long.valueOf(payload.get("supplierId").toString())
             );
+
             return new ResponseEntity<>(updated, HttpStatus.OK);
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
             return ResponseEntity.internalServerError().build();
         }
         catch (Exception e) {

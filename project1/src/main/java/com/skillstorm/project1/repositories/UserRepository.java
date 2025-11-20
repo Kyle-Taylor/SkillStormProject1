@@ -10,6 +10,12 @@ import com.skillstorm.project1.models.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // Login will use email
+    /**
+     * Finds a user by their email address.
+     *
+     * @param email the email of the user to look up
+     * @return an {@link Optional} containing the matching {@link User} if found,
+     *         or an empty Optional if no user exists with that email
+     */
     Optional<User> findByEmail(String email);
 }
