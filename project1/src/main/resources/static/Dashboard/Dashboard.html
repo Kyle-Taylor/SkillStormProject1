@@ -49,30 +49,43 @@
       <div class="tab">Suppliers</div>
     </div>
 
-    <!-- RESTOCK TABLE -->
-    <div class="table-container" id="restockSection">
-      <div class="actions">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInputRestocks" placeholder="Search..."class="search-bar"/>
-          </div>          
-        <button class="btn" onclick="openRestockModal()">New Restock Order</button>
+<!-- RESTOCK TABLE -->
+  <div class="table-container" id="restockSection">
+    <div class="actions">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInputRestocks" placeholder="Search..." class="main-search-bar"/>
       </div>
-      <table id="restockTable">
-        <thead>
-          <tr>
-            <th onclick="sortRestocks(0)">Restock ID <span class="sort-arrow">⇅</span></th>
-            <th onclick="sortRestocks(1)">Item Restocked <span class="sort-arrow">⇅</span></th>
-            <th>Amount Ordered</th>
-            <th onclick="sortRestocks(3)">Restock Date <span class="sort-arrow">⇅</span></th>
-            <th onclick="sortRestocks(4)">Ordered By <span class="sort-arrow">⇅</span></th>
-          </tr>
-        </thead>
-        <tbody id="restockTableBody">
-          <tr><td colspan="5" style="text-align:center;">Loading restock orders...</td></tr>
-        </tbody>
-      </table>
+      <button class="btn" onclick="openRestockModal()">New Restock Order</button>
     </div>
+
+    <table id="restockTable">
+      <thead>
+        <tr class="header-row">
+          <th onclick="sortRestocks(0)">Restock ID <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortRestocks(1)">Item Restocked <span class="sort-arrow">⇅</span></th>
+          <th>Amount Ordered</th>
+          <th onclick="sortRestocks(3)">Warehouse <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortRestocks(4)">Restock Date <span class="sort-arrow">⇅</span></th>
+          <th onclick="sortRestocks(5)">Ordered By <span class="sort-arrow">⇅</span></th>
+        </tr>
+
+        <!-- column search row -->
+        <tr class="search-row">
+          <th><input id="searchRestockId" class="search-bar" placeholder="Search ID..."></th>
+          <th><input id="searchRestockItem" class="search-bar" placeholder="Search item..."></th>
+          <th></th>
+          <th><input id="searchRestockWarehouse" class="search-bar" placeholder="Search warehouse..."></th>
+          <th><input id="searchRestockDate" class="search-bar" placeholder="Search date..."></th>
+          <th><input id="searchRestockBy" class="search-bar" placeholder="Search user..."></th>
+        </tr>
+      </thead>
+
+      <tbody id="restockTableBody">
+        <tr><td colspan="6" style="text-align:center;">Loading restock orders...</td></tr>
+      </tbody>
+    </table>
+  </div>
 
     <!-- WAREHOUSE TABLE -->
     <div class="table-container" id="warehouseSection" style="display:none;">
@@ -80,73 +93,101 @@
       <!-- ACTION BAR -->
       <div class="actions">
         <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInputWarehouses" placeholder="Search..."class="search-bar"/>
-          </div>      
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInputWarehouses" placeholder="Search..." class="main-search-bar"/>
+      </div>
           <button class="btn" style="background-color: Red" onclick="openDeleteWarehouseModal()">Delete Warehouse</button>
           <button class="btn" onclick="openCreateWarehouseModal()">New Warehouse</button>
       </div>
-
       <table id="warehouseTable">
         <thead>
-          <tr>
-            <th onClick="sortWarehouses(0)">Warehouse Name <span class="sort-arrow">⇅</span></th>
-            <th onClick="sortWarehouses(1)">Location <span class="sort-arrow">⇅</span></th>
-            <th onClick="sortWarehouses(2)">Total Supply <span class="sort-arrow">⇅</span></th>
-            <th onClick="sortWarehouses(3)">Capacity <span class="sort-arrow">⇅</span></th>
-            <th>Edit Warehouse</th>
+          <tr class="header-row">
+          <th onClick="sortWarehouse(0)">Warehouse Name <span class="sort-arrow">⇅</span></th>
+          <th onClick="sortWarehouse(1)">Location <span class="sort-arrow">⇅</span></th>
+          <th onClick="sortWarehouse(2)">Total Supply <span class="sort-arrow">⇅</span></th>
+          <th onClick="sortWarehouse(3)">Capacity <span class="sort-arrow">⇅</span></th>
+          <th>Edit Warehouse</th>
           </tr>
-        </thead>
+
+      <tr class="search-row">
+        <th><input id="searchWarehouseName"        class="search-bar" placeholder="Search name..."></th>
+        <th><input id="searchWarehouseLocation"    class="search-bar" placeholder="Search location..."></th>
+        <th><input id="searchWarehouseTotalSupply" class="search-bar" placeholder="Search supply..."></th>
+        <th><input id="searchWarehouseCapacity"    class="search-bar" placeholder="Search capacity..."></th>
+        <th></th>
+      </tr>
+      </thead>
         <tbody id="warehouseTableBody">
-          <tr><td colspan="4" style="text-align:center;">Loading warehouses...</td></tr>
+          <tr><td colspan="5" style="text-align:center;">Loading warehouses...</td></tr>
         </tbody>
       </table>
 
     </div>
 
-        <!-- CHECKOUTS TABLE -->
-    <div class="table-container" id="checkoutSection" style="display: none;">
-      <div class="actions">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInputCheckouts" placeholder="Search..."class="search-bar"/>
-          </div>  
-          <button class="btn" onclick="openCheckoutModal()">New Checkout</button>
+  <!-- CHECKOUTS TABLE -->
+  <div class="table-container" id="checkoutSection" style="display:none;">
+
+    <div class="actions">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInputCheckouts" placeholder="Search..." class="main-search-bar"/>
       </div>
-      <table id="checkoutTable">
-        <thead>
-          <tr>
-            <th onClick="sortCheckouts(0)">Checkout ID <span class="sort-arrow">⇅</span></th>
-            <th onClick="sortCheckouts(1)">Item Checked Out <span class="sort-arrow">⇅</span></th>
-            <th>Amount Checked Out</th>
-            <th onClick="sortCheckouts(3)">Checkout Date <span class="sort-arrow">⇅</span></th>
-            <th onClick="sortCheckouts(4)">Checked Out By <span class="sort-arrow">⇅</span></th>
-          </tr>
-        </thead>
-        <tbody id="checkoutTableBody">
-          <tr><td colspan="5" style="text-align:center;">Loading checkouts...</td></tr>
-        </tbody>
-      </table>
+      <button class="btn" onclick="openCheckoutModal()">New Checkout</button>
     </div>
+
+    <table id="checkoutTable">
+      <thead>
+        <tr class="header-row">
+          <th onClick="sortCheckouts(0)">Checkout ID <span class="sort-arrow">⇅</span></th>
+          <th onClick="sortCheckouts(1)">Item Checked Out <span class="sort-arrow">⇅</span></th>
+          <th>Amount</th>
+          <th onClick="sortCheckouts(3)">Warehouse <span class="sort-arrow">⇅</span></th>
+          <th onClick="sortCheckouts(4)">Checkout Date <span class="sort-arrow">⇅</span></th>
+          <th onClick="sortCheckouts(5)">Checked Out By <span class="sort-arrow">⇅</span></th>
+        </tr>
+
+        <tr class="search-row">
+          <th><input id="searchCheckoutId"        class="search-bar" placeholder="Search ID..."></th>
+          <th><input id="searchCheckoutItem"      class="search-bar" placeholder="Search item..."></th>
+          <th></th>
+          <th><input id="searchCheckoutWarehouse" class="search-bar" placeholder="Search warehouse..."></th>
+          <th><input id="searchCheckoutDate"      class="search-bar" placeholder="Search date..."></th>
+          <th><input id="searchCheckoutBy"        class="search-bar" placeholder="Search user..."></th>
+        </tr>
+      </thead>
+      <tbody id="checkoutTableBody">
+        <tr><td colspan="6" style="text-align:center;">Loading checkouts...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
 
     <!-- Products TABLE -->
     <div class="table-container" id="productsSection" style="display: none;">
       <div class="actions">
         <div class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInputProducts" placeholder="Search..."class="search-bar"/>
+            <input type="text" id="searchInputProducts" placeholder="Search..."class="main-search-bar"/>
           </div>
           <button class="btn" onclick="openCreateProductModal()">New Product</button>
       </div>
       <table id="productsTable">
         <thead>
-          <tr>
+          <tr class="header-row">
             <th onClick="sortProducts(0)">Product SKU <span class="sort-arrow">⇅</span></th>
             <th onClick="sortProducts(1)">Product Name <span class="sort-arrow">⇅</span></th>
             <th onClick="sortProducts(2)">Price <span class="sort-arrow">⇅</span></th>
             <th onClick="sortProducts(3)">Category <span class="sort-arrow">⇅</span></th>
             <th onClick="sortProducts(4)">Supplier <span class="sort-arrow">⇅</span></th>
             <th onClick="sortProducts(5)">Total Quantity <span class="sort-arrow">⇅</span></th>
+          </tr>
+          <tr class="search-row">
+            <th><input id="searchProductSKU"           class="search-bar" placeholder="Search SKU..."></th>
+            <th><input id="searchProductName"          class="search-bar" placeholder="Search name..."></th>
+            <th></th>
+            <th><input id="searchProductCategory"      class="search-bar" placeholder="Search category..."></th>
+            <th><input id="searchProductSupplier"      class="search-bar" placeholder="Search supplier..."></th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="productsTableBody">
@@ -160,7 +201,7 @@
       <div class="actions">
         <div class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInputSuppliers" placeholder="Search..."class="search-bar"/>
+            <input type="text" id="searchInputSuppliers" placeholder="Search..."class="main-search-bar"/>
           </div>
           <button class="btn" onclick="openCreateSupplierModal()">New Supplier</button>
       </div>
@@ -171,6 +212,12 @@
             <th>Contact Email</th>
             <th>Phone</th>
             <th onClick="sortSuppliers(3)">Address <span class="sort-arrow">⇅</span></th>
+          </tr>
+          <tr class="search-row">
+            <th><input id="searchSupplierName"           class="search-bar" placeholder="Search name..."></th>
+            <th><input id="searchSupplierEmail"          class="search-bar" placeholder="Search email..."></th>
+            <th><input id="searchSupplierPhone"          class="search-bar" placeholder="Search phone..."></th>
+            <th><input id="searchSupplierAddress"        class="search-bar" placeholder="Search address..."></th>
           </tr>
         </thead>
         <tbody id="suppliersTableBody">
@@ -184,6 +231,7 @@
   <div class="modal-content" id="editSupplierModalContent" onclick="event.stopPropagation();">
     <button class="close-btn" onclick="closeEditSupplierModal()" aria-label="Close">&times;</button>
     <h2>Edit Supplier</h2>
+      <form id="editSupplierForm">
     <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd;">
       <tbody>
         <tr style="border-bottom:1px solid #333;">
@@ -225,6 +273,7 @@
         </tr>
       </tbody>
     </table>
+    </form>
     <div style="margin-top:20px; display:flex; justify-content:space-between;">
       <button id="deleteSupplierBtn" class="btn" style="background-color:red;">Delete Supplier</button>
       <button id="submitEditSupplierBtn" class="btn">Save Changes</button>
@@ -363,6 +412,7 @@
   <div class="modal-content" id="editProductModalContent" onclick="event.stopPropagation();">
     <button class="close-btn" onclick="closeEditProductModal()" aria-label="Close">&times;</button>
     <h2>Edit Product</h2>
+     <form id="editProductForm">
     <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd;">
       <tbody>
         <tr style="border-bottom:1px solid #333;">
@@ -396,8 +446,7 @@
         <td style="padding:8px 6px; font-weight:600;">Supplier</td>
         <td style="padding:8px 6px;">
           <select id="editProductSupplierSelect"
-                  class="modal-input"
-                  style="width:90%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:6px;">
+                  class="select-dd">
             <option value="">-- Choose Supplier --</option>
             <!-- Dynamically add suppliers here -->
           </select>
@@ -412,6 +461,7 @@
           </tr>
       </tbody>
     </table>
+    </form>
     <div style="margin-top:20px; display:flex; justify-content:space-between;">
       <button id="deleteProductBtn" class="btn" style="background-color:red;">Delete Product</button>
       <button id="submitEditProductBtn" class="btn">Save Changes</button>
@@ -443,16 +493,10 @@
   </div>
 
   <!-- RESTOCK MODAL -->
-  <div id="restockModal" class="modal">
-    <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
-      <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
-      <h2>Select Warehouses</h2>
-      <div id="warehouseList" style="margin-top:10px;"></div>
-      <div style="text-align:right;margin-top:20px;">
-        <button id="nextStepBtn" class="btn" disabled>Next →</button>
-      </div>
-    </div>
+<div id="restockModal" class="modal" style="display:none;">
+  <div class="modal-content" id="restockModalContent" onclick="event.stopPropagation();">
   </div>
+</div>
 
   <!-- Create Warehouse MODAL -->
   <div id="createWarehouseModal" class="modal" style="display:none;">
@@ -505,6 +549,7 @@
   <div class="modal-content" id="editWarehouseModalContent" onclick="event.stopPropagation();">
     <button class="close-btn" onclick="closeEditWarehouseModal()" aria-label="Close">&times;</button>
     <h2>Edit Warehouse</h2>
+    <form id="editWarehouseForm">
     <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd;">
       <tbody>
         <tr style="border-bottom:1px solid #333;">
@@ -536,6 +581,7 @@
         </tr>
       </tbody>
     </table>
+    </form>
     <div style="text-align:right; margin-top:20px;">
       <button id="submitEditWarehouseBtn" class="btn">Save Changes</button>
     </div>
@@ -647,18 +693,18 @@
       <label for="transferToWarehouseSelect" style="margin-top:15px; display:block;">
         Transfer To:
       </label>
-      <select id="transferToWarehouseSelect" style="width:100%; padding:8px; border-radius:6px;">
+      <select id="transferToWarehouseSelect" class="select-dd">
         <option value="">Loading warehouses...</option>
       </select>
       <label>Amount to Transfer:</label> <br>
-      <input id="transferAmountInput" type="number" min="1" style="width:15%; padding:8px; margin:10px 0;" />
+      <input id="transferAmountInput" type="number" min="1" style="width:120px;padding:6px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;" />
       <div style="text-align:right; margin-top:20px;">
         <button class="btn" onclick="confirmTransferInventory()">Confirm Transfer</button>
       </div>
   </div>
 </div>
 
-<!-- EDIT INVENTORY LOCATION MODAL -->
+<!-- EDIT INVENTORY -->
 <div id="editInventoryLocationModal" class="modal" style="display:none;">
   <div class="modal-content" onclick="event.stopPropagation();" 
        style="
@@ -667,39 +713,61 @@
          width:350px;
          color:#fff;
        ">
-       
-    <button class="close-btn" onclick="closeEditInventoryLocationModal()" aria-label="Close">&times;</button>
 
-    <h2 style="margin-top:0; text-align:center;">Edit Inventory Location</h2>
+    <button class="close-btn" onclick="closeEditInventoryAndMinStockLocationModal()" aria-label="Close">&times;</button>
 
-    <label for="editInventoryLocationInput" 
-         style="font-weight:600; margin-right:15px; white-space:nowrap;">
-    New Shelf #
-  </label>
+    <h2 style="margin-top:0; text-align:center;">
+      Edit Inventory For <span id="editInventoryItemName"></span>
+    </h2>
 
-  <input type="number" 
-    id="editInventoryLocationInput"
-    placeholder="Shelf #"
-    style="
-      width: 25%;
-      flex:1;
-      padding:8px 10px;
-      border-radius:6px;
-      border:1px solid #444;
-      background:#2a2a2a;
-      color:#fff;
-      font-size:1rem;
-      " />
+    <form id="editInventoryLocationForm">
+      <div style="margin-top:20px; display:flex; flex-direction:column; gap:20px;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label for="editInventoryLocationInput" style="font-weight:600;">
+            New Shelf #
+          </label>
+          <input type="number"
+                 id="editInventoryLocationInput"
+                 placeholder="Shelf #"
+                 style="
+                   width:15%;
+                   padding:10px;
+                   border-radius:6px;
+                   border:1px solid #444;
+                   background:#2a2a2a;
+                   color:#fff;
+                   font-size:1rem;
+                 ">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label for="editInventoryMinStockInput" style="font-weight:600;">
+            New Minimum Stock #
+          </label>
+          <input type="number"
+                 id="editInventoryMinStockInput"
+                 placeholder="Minimum Stock"
+                 style="
+                   width:15%;
+                   padding:10px;
+                   border-radius:6px;
+                   border:1px solid #444;
+                   background:#2a2a2a;
+                   color:#fff;
+                   font-size:1rem;
+                 ">
+        </div>
+      </div>
+      <div style="text-align:right; margin-top:25px;">
+        <button id="confirmEditInventoryBtn" class="btn" 
+                style="padding:8px 16px; font-size:0.95rem;">
+          Confirm
+        </button>
+      </div>
 
-    <div style="text-align:right; margin-top:25px;">
-      <button id="confirmEditInventoryBtn" class="btn" 
-              style="padding:8px 16px; font-size:0.95rem;">
-        Confirm
-      </button>
-    </div>
-    
+    </form>
   </div>
 </div>
+
 
 
 <!-- DELETE INVENTORY ITEM CONFIRMATION MODAL -->

@@ -187,10 +187,11 @@ public class InventoryController {
     inventoryService.transferInventory(inventory, newWarehouse, amount);
 }
 
-    @PutMapping("/update_location/{inventoryId}")
+    @PutMapping("/update_locationAndMinStock/{inventoryId}")
     public ResponseEntity<Void> updateInventoryLocation(@PathVariable Long inventoryId, @RequestBody Map<String, Object> request) {
         int newLocation = (int) request.get("warehouseLocation");
-        inventoryService.updateInventoryLocation(inventoryId, newLocation);
+        int newMinStock = (int) request.get("minimumStock");
+        inventoryService.updateInventoryLocationAndMinStock(inventoryId, newLocation, newMinStock);
         return ResponseEntity.ok().build();
     }
 

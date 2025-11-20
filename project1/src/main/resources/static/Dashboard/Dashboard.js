@@ -20,14 +20,12 @@ async function loadRestockOrders() {
         <td>${order.restockId}</td>
         <td>${order.product?.productName || "Unknown Item"}</td>
         <td>${order.amount}</td>
+        <td>${order.warehouse?.name || "Unknown Warehouse"}</td>
         <td>${new Date(order.restockDate).toLocaleDateString()}</td>
         <td>${order.orderedBy || "N/A"}</td>
       `;
       body.appendChild(row);
     });
-
-    // we need to do a filter when it loads to apply any existing search query
-    filterRestocks(document.getElementById("searchInputRestocks").value.trim().toLowerCase());
 
   } catch (error) {
     console.error("Error loading restock orders:", error);
@@ -78,7 +76,6 @@ async function loadWarehouses() {
       body.appendChild(row);
     });
     // we need to do a filter when it loads to apply any existing search query
-    filterWarehouses(document.getElementById("searchInputWarehouses").value.trim().toLowerCase());
 
   } catch (err) {
     console.error("Error loading warehouses:", err);
@@ -126,9 +123,6 @@ async function loadProducts() {
       body.appendChild(row);
     });
 
-    // we need to do a filter when it loads to apply any existing search query
-    filterProducts(document.getElementById("searchInputProducts").value.trim().toLowerCase());
-
   } catch (err) {
     console.error("Error loading warehouses:", err);
     document.getElementById("warehouseTableBody").innerHTML =
@@ -163,9 +157,6 @@ async function loadSuppliers() {
       body.appendChild(row);
     });
 
-    // we need to do a filter when it loads to apply any existing search query
-    filterSuppliers(document.getElementById("searchInputSuppliers").value.trim().toLowerCase());
-    
   } catch (err) {
     console.error("Error loading warehouses:", err);
     document.getElementById("warehouseTableBody").innerHTML =
@@ -229,6 +220,7 @@ function openEditSupplierModal(id, name, email, phone, address) {
 }
 function closeEditSupplierModal() {
   document.getElementById("editSupplierModal").style.display = "none";
+  document.getElementById("editSupplierForm").reset();
 }
 
 function openDeleteSupplierModal(supplierId) {
@@ -395,7 +387,7 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
     const updatedPrice = parseFloat(document.getElementById("editProductPrice").value);
     const updatedSupplierId = document.getElementById("editProductSupplierSelect").value || null;
     
-    if (!updatedName || !updatedCategory || isNaN(updatedPrice)) {
+    if (!updatedName || !updatedCategory || isNaN(updatedPrice) || updatedSupplierId === null) {
       showToast("Please fill out all fields. ⚠️");
       return;
     }
@@ -410,7 +402,7 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
           supplierId: updatedSupplierId ? parseInt(updatedSupplierId) : null
         })
       });
-
+      
       if (response.ok) {
         showToast("Product updated successfully!");
         closeEditProductModal();
@@ -431,6 +423,7 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
 }
 function closeEditProductModal() {
   document.getElementById("editProductModal").style.display = "none";
+  document.getElementById("editProductForm").reset();
 }
 
 // ============================== DELETE PRODUCT SECTION ==============================
@@ -528,6 +521,7 @@ function openEditWarehouseModal(id, name, location, capacity) {
 
 function closeEditWarehouseModal() {
   document.getElementById("editWarehouseModal").style.display = "none";
+  document.getElementById("editWarehouseForm").reset();
 }
 
 document.getElementById("editWarehouseModal").addEventListener("click", (e) => {
@@ -586,14 +580,12 @@ async function loadCheckouts() {
         <td>${co.checkoutId}</td>
         <td>${co.product?.productName || "Unknown Item"}</td>
         <td>${co.amount}</td>
+        <td>${co.warehouse?.name || "Unknown Warehouse"}</td>
         <td>${new Date(co.checkoutDate).toLocaleDateString()}</td>
         <td>${co.userEmail || "N/A"}</td>
       `;
       body.appendChild(row);
     });
-
-    // we need to do a filter when it loads to apply any existing search query
-    filterCheckouts(document.getElementById("searchInputCheckouts").value.trim().toLowerCase());
 
   } catch (err) {
     console.error("Error loading checkouts:", err);
@@ -705,216 +697,177 @@ tabs.forEach(tab => {
   });
 });
 
-// ============================== OPEN RESTOCK MODAL ==============================
+// ============================== RESTOCK MODAL ==============================
 async function openRestockModal() {
   const modal = document.getElementById("restockModal");
   const modalContent = document.getElementById("restockModalContent");
   modal.style.display = "flex";
 
-  try {
-    const res = await fetch("/warehouses");
-    const warehouses = await res.json();
+  const products = await (await fetch("/products")).json();
+  const warehouses = await (await fetch("/warehouses")).json();
 
-    modalContent.innerHTML = `
-      <button id="closeModalBtn" class="close-btn" aria-label="Close">&times;</button>
-      <h2>Select Warehouses</h2>
-      <div style="margin-top:15px; overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
-          <thead>
-            <tr style="background-color:#2a2a2a;">
-              <th style="padding:8px 10px; text-align:left;">Select</th>
-              <th style="padding:8px 10px; text-align:left;">Warehouse Name</th>
-              <th style="padding:8px 10px; text-align:left;">Location</th>
-              <th style="padding:8px 10px; text-align:right;">Total Stock</th>
-              <th style="padding:8px 10px; text-align:right;">Capacity</th>
-            </tr>
-          </thead>
-          <tbody id="warehouseList">
-            ${warehouses.map(w => `
-              <tr style="border-bottom:1px solid #333;">
-                <td style="padding:8px 10px;"><input type="checkbox" name="warehouse" value="${w.warehouseId}"></td>
-                <td style="padding:8px 10px;">${w.name || "N/A"}</td>
-                <td style="padding:8px 10px;">${w.location}</td>
-                <td style="padding:8px 10px; text-align:right;">${w.totalSupply}</td>
-                <td style="padding:8px 10px; text-align:right;">${w.capacity}</td>
-              </tr>`).join("")}
-          </tbody>
-        </table>
-      </div>
-      <div style="text-align:right;margin-top:20px;">
-        <button id="nextStepBtn" class="btn" disabled>Next →</button>
-      </div>
-    `;
+  modalContent.innerHTML = `
+    <button id="closeRestockModalBtn" class="close-btn" aria-label="Close">&times;</button>
 
-    document.getElementById("closeModalBtn").addEventListener("click", () => {
-      document.getElementById("restockModal").style.display = "none";
-    });
+    <h2>Select Warehouse</h2>
+      <select id="restockWarehouseSelect" class="select-dd" style="margin-top:10px;">
+      <option value="">-- Choose a warehouse --</option>
+      ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
+    </select>
 
-    const list = document.getElementById("warehouseList");
-    const nextBtn = document.getElementById("nextStepBtn");
+    <h2 style="margin-top:20px;">Select Product</h2>
+    <select id="restockProductSelect" class="select-dd" style="margin-top:10px;">
+      <option value="">-- Choose a product --</option>
+    </select>
 
-    list.querySelectorAll("input[type='checkbox']").forEach(cb => {
-      cb.addEventListener("change", () => {
-        const anySelected = Array.from(list.querySelectorAll("input:checked")).length > 0;
-        nextBtn.disabled = !anySelected;
-      });
-    });
+    <div id="restockProductDetails" style="margin-top:20px;color:#ddd;font-size:0.9rem;"></div>
 
-    nextBtn.addEventListener("click", () => loadProductSelection());
-  } catch (err) {
-    console.error("Error loading warehouses:", err);
-    modalContent.innerHTML = `<p style="color:red;">Error loading warehouses.</p>`;
+    <div id="restockAmountContainer" style="margin-top:20px; display:none;">
+      <label style="display:block;">Amount to Restock:</label>
+      <input type="number" id="restockAmount" min="1"
+        style="width:120px;padding:6px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;">
+    </div>
+
+    <div style="text-align:right;margin-top:25px;">
+      <button id="submitRestockBtn" class="btn" disabled>Submit Restock</button>
+    </div>
+  `;
+
+  // Close button
+  document.getElementById("closeRestockModalBtn").addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Fields
+  const warehouseSelect = document.getElementById("restockWarehouseSelect");
+  const productSelect = document.getElementById("restockProductSelect");
+  const amountInput = document.getElementById("restockAmount");
+  const amountContainer = document.getElementById("restockAmountContainer");
+  const detailsDiv = document.getElementById("restockProductDetails");
+  const submitBtn = document.getElementById("submitRestockBtn");
+
+  // Enable submit only when valid
+  function updateSubmitState() {
+    const warehouseId = warehouseSelect.value;
+    const productId = productSelect.value;
+    const amount = parseInt(amountInput.value || 0);
+
+    submitBtn.disabled = !warehouseId || !productId || amount <= 0;
   }
-}
 
-// ============================== STEP 2: SELECT PRODUCT ==============================
-async function loadProductSelection() {
-  const modalContent = document.getElementById("restockModalContent");
-  const selectedWarehouses = Array.from(document.querySelectorAll("input[name='warehouse']:checked"))
-    .map(cb => cb.value);
+  warehouseSelect.addEventListener("change", updateSubmitState);
+  amountInput.addEventListener("input", updateSubmitState);
 
-  try {
-    const products = await (await fetch("/products")).json();
+  warehouseSelect.addEventListener("change", async () => {
+  const warehouseId = warehouseSelect.value;
 
-    modalContent.innerHTML = `
-      <button id="backBtn" class="btn" style="background-color:#555;">← Back</button>
-      <h2 style="display:inline-block; margin-left:10px;">Select Product</h2>
-      <button class="close-btn" onclick="closeRestockModal()" aria-label="Close">&times;</button>
-      <select id="productSelect" style="margin-top:10px;width:100%;padding:8px;">
-        <option value="">-- Choose A Product --</option>
-        ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
-      </select>
+  productSelect.innerHTML = `<option value="">-- Choose a product --</option>`;
+  detailsDiv.innerHTML = "";
+  amountContainer.style.display = "none";
+  submitBtn.disabled = true;
 
-      <div id="productDetails" style="margin-top:15px;color:#ddd;font-size:0.9rem;"></div>
+  if (!warehouseId) return;
 
-      <div style="text-align:right;margin-top:20px;">
-        <button id="submitRestockBtn" class="btn" disabled>Submit</button>
-      </div>
+  // Load ALL products instead of only products in this warehouse
+  const allProducts = await (await fetch(`/products`)).json();
+
+  allProducts.forEach(p => {
+    productSelect.innerHTML += `<option value="${p.productId}">${p.productName}</option>`;
+  });
+  });
+
+  // When product is selected → show details + amount input
+  productSelect.addEventListener("change", async (e) => {
+    const productId = e.target.value;
+
+    detailsDiv.innerHTML = "";
+    amountContainer.style.display = "none";
+    submitBtn.disabled = true;
+
+    if (!productId) return;
+
+    const product = await (await fetch(`/products/${productId}`)).json();
+
+    const supplier = product.supplier
+      ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
+      : "Unknown Supplier";
+
+    detailsDiv.innerHTML = `
+      <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
+        <tbody>
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Product SKU</td>
+            <td style="padding:8px 6px;">${product.productId * 12345}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; width:140px; font-weight:600;">Product Name</td>
+            <td style="padding:8px 6px;">${product.productName}</td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Category</td>
+            <td style="padding:8px 6px;">${product.category}</td>
+          </tr>
+
+          <tr style="border-bottom:1px solid #333;">
+            <td style="padding:8px 6px; font-weight:600;">Price</td>
+            <td style="padding:8px 6px;">$${(+product.price).toFixed(2)}</td>
+          </tr>
+
+          <tr>
+            <td style="padding:8px 6px; font-weight:600;">Supplier</td>
+            <td style="padding:8px 6px;">${supplier}</td>
+          </tr>
+        </tbody>
+      </table>
     `;
 
-    document.getElementById("backBtn").addEventListener("click", openRestockModal);
+    amountContainer.style.display = "block";
+    updateSubmitState();
+  });
 
-    const productSelect = document.getElementById("productSelect");
-    const detailsDiv = document.getElementById("productDetails");
-    const submitBtn = document.getElementById("submitRestockBtn");
+  // Submit restock order
+  submitBtn.addEventListener("click", async () => {
+    const warehouseId = warehouseSelect.value;
+    const productId = productSelect.value;
+    const amount = parseInt(amountInput.value, 10);
 
-    productSelect.addEventListener("change", async (e) => {
-      const productId = e.target.value;
-      detailsDiv.innerHTML = "";
-      submitBtn.disabled = false;
-      if (!productId) return;
+    if (!warehouseId || !productId || amount <= 0) return;
 
-      try {
-        const res = await fetch(`/products/${productId}`);
-        const product = await res.json();
-
-        const supplier = product.supplier
-          ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
-          : "Unknown Supplier";
-
-        detailsDiv.innerHTML = `
-          <table style="width:100%; margin-top:15px; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
-          <tbody>
-            <tr style="border-bottom:1px solid #333;">
-              <td style="padding:8px 6px; width:140px; font-weight:600;">Product SKU</td>
-              <td style="padding:8px 6px;">${product.productId * 12345}</td>
-            </tr>
-            <tr style="border-bottom:1px solid #333;">
-              <td style="padding:8px 6px; width:140px; font-weight:600;">Category</td>
-              <td style="padding:8px 6px;">${product.category || "N/A"}</td>
-            </tr>
-
-            <tr style="border-bottom:1px solid #333;">
-              <td style="padding:8px 6px; font-weight:600;">Price per Unit</td>
-              <td style="padding:8px 6px;">$${(+product.price).toFixed(2)}</td>
-            </tr>
-
-            <tr style="border-bottom:1px solid #333;">
-              <td style="padding:8px 6px; font-weight:600;">Supplier</td>
-              <td style="padding:8px 6px;">${supplier}</td>
-            </tr>
-
-            <tr style="border-bottom:1px solid #333;">
-              <td style="padding:8px 6px; font-weight:600;">Amount to Restock</td>
-              <td style="padding:8px 6px;">
-                <input type="number" id="restockAmount" min="1"
-                  style="width:120px;padding:6px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:4px;">
-              </td>
-            </tr>
-
-            <tr>
-              <td style="padding:8px 6px; font-weight:600;">Total Cost</td>
-              <td style="padding:8px 6px;">
-                $<span id="totalCost">0.00</span>
-              </td>
-            </tr>
-
-          </tbody>
-        </table>
-
-        `;
-
-        const price = +product.price;
-        const amountInput = document.getElementById("restockAmount");
-        const totalCost = document.getElementById("totalCost");
-
-        amountInput.addEventListener("input", () => {
-          const amount = parseInt(amountInput.value || 0, 10);
-          totalCost.textContent = (price * amount).toFixed(2);
-        });
-
-        submitBtn.onclick = async () => {
-          const amount = parseInt(amountInput.value, 10);
-          console.log(amount);
-          if (!amount|| amount <= 0) {
-            showToast("Please enter a valid amount.");
-            return;
-          }
-
-          try {
-            for (const wId of selectedWarehouses) {
-              if(await checkWarehouseCapacity(wId, amount) === false){
-              showToast("This change will place a selected warehouse(s) over capacity!", 5000);
-              closeRestockModal();
-              loadRestockOrders();
-              return;
-            }
-              await fetch("/restocks/create_restock", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  warehouseId: wId,
-                  productId: productId,
-                  amount: amount,
-                  orderedBy: currentUserEmail
-                })
-              });
-            }
-            showToast("Restock order(s) created successfully!");
-            loadTotalInventoryQuantityAndValue();
-            closeRestockModal();
-            loadRestockOrders();
-            loadWarehouses();
-          } catch (postErr) {
-            console.error("Error creating restock:", postErr);
-            showToast("Error creating restock order.", 3000);
-          }
-        };
-      } catch (err) {
-        console.error("Error loading product:", err);
-        detailsDiv.innerHTML = `<p style="color:red;">Error loading product details.</p>`;
+    try {
+      const canFit = await checkWarehouseCapacity(warehouseId, amount);
+      if (!canFit) {
+        showToast("This change will place the warehouse over capacity!", 5000);
+        return;
       }
-    });
-  } catch (errOuter) {
-    console.error("Error loading products:", errOuter);
-    modalContent.innerHTML = `<p style="color:red;">Error loading products.</p>`;
-  }
+
+      await fetch("/restocks/create_restock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          warehouseId,
+          productId,
+          amount,
+          orderedBy: currentUserEmail
+        })
+      });
+
+      showToast("Restock created successfully!");
+      loadTotalInventoryQuantityAndValue();
+      closeRestockModal();
+      loadRestockOrders();
+      loadWarehouses();
+    } catch (err) {
+      console.error("Restock error:", err);
+      showToast("Error creating restock order.", 3000);
+    }
+  });
 }
 
-// ============================== CLOSE MODAL ==============================
 function closeRestockModal() {
   document.getElementById("restockModal").style.display = "none";
 }
+
 
 // ============================== TOAST ==============================
 function showToast(message, duration = 2500) {
@@ -1066,7 +1019,7 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
     }
     inventory.forEach(i => {
       const row = document.createElement("tr");
-      row.setAttribute("onclick", `openEditInventoryLocationModal(${i.inventoryId}, ${warehouseId}, '${warehouseName}', '${i.warehouseLocation || ""}')`);
+      row.setAttribute("onclick", `openEditInventoryLocationModal('${i.product.productName}', ${i.inventoryId}, ${warehouseId}, '${warehouseName}', '${i.warehouseLocation || ""}', ${i.minimumStock})`);
       row.classList.add("clickable-row");
       const cleanedProductName = i.product.productName.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       // check if inventory is below minimum stock and add orange border if so
@@ -1080,11 +1033,10 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
         <td>$${i.product.price}</td>
         <td>${i.product.category || "N/A"}</td>
         <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
-        <td>Shelf: ${i.warehouseLocation || "0"}</td>
+        <td>Shelf# ${i.warehouseLocation || "0"}</td>
         <td>${i.minimumStock}</td>
-        <td><button class="btn"onclick="openTransferInventoryModal(${i.inventoryId},${warehouseId},${i.product.productId},'${cleanedProductName}')">Transfer</button></td>        
-        <td><button class="btn" style="background-color: Red; padding:6px 12px;" onclick="openDeleteInventoryItemModal(${i.inventoryId})">Delete</button></td>
-      `;
+        <td><button class="btn"onclick="event.stopPropagation(); openTransferInventoryModal(${i.inventoryId}, ${warehouseId}, ${i.product.productId}, '${cleanedProductName}', ${i.minimumStock})">Transfer</button></td>        
+        <td><button class="btn" style="background-color: Red; padding:6px 12px;"onclick="event.stopPropagation(); openDeleteInventoryItemModal(${i.inventoryId})">Delete</button></td>      `;
       body.appendChild(row);
     });
   } catch (err) {
@@ -1094,35 +1046,50 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
   }
 }
 
-// ============================== EDIT INVENTORY LOCATION ==============================
+// ============================== EDIT INVENTORY IN WAREHOUSE ==============================
 let editingInventoryId = null;
 let currentWarehouseId = null;
 let currentWarehouseName = null;
-function openEditInventoryLocationModal(inventoryId, warehouseId, warehouseName, warehouseLocation) {
+function openEditInventoryLocationModal(productName, inventoryId, warehouseId, warehouseName, warehouseLocation, minStock) {
   editingInventoryId = inventoryId;
   currentWarehouseId = warehouseId;
   currentWarehouseName = warehouseName;
   document.getElementById("editInventoryLocationModal").style.display = "flex";
   document.getElementById("editInventoryLocationInput").value = warehouseLocation || "";
+  document.getElementById("editInventoryMinStockInput").value = minStock || 0;
+  document.getElementById("editInventoryItemName").textContent = productName;
+
 }
 
-function closeEditInventoryLocationModal() {
+function closeEditInventoryAndMinStockLocationModal() {
     document.getElementById("editInventoryLocationModal").style.display = "none";
 }
 
 document.getElementById("confirmEditInventoryBtn").addEventListener("click", async () => {
   const newLocation = document.getElementById("editInventoryLocationInput").value.trim();
+  const minimumStock = Number(document.getElementById("editInventoryMinStockInput").value);
 
+  if (isNaN(minimumStock) || minimumStock < 0) {
+    showToast("Please enter a valid minimum stock value. ⚠️");
+    return;
+  }
+  if (!newLocation) {
+    showToast("Please enter a valid warehouse location. ⚠️");
+    return;
+  }
   try {
-    const response = await fetch(`/inventory/update_location/${editingInventoryId}`, {
+    const response = await fetch(`/inventory/update_locationAndMinStock/${editingInventoryId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ warehouseLocation: Number(newLocation) })
+      body: JSON.stringify({ 
+        warehouseLocation: Number(newLocation),
+        minimumStock: minimumStock
+      })
     });
 
     if (response.ok) {
       showToast("Inventory location updated successfully!");
-      closeEditInventoryLocationModal();
+      closeEditInventoryAndMinStockLocationModal();
       loadWarehouses();
       loadInventoryForWarehouse(currentWarehouseId, currentWarehouseName);
     } else {
@@ -1150,19 +1117,30 @@ async function openTransferInventoryModal(inventoryId, fromWarehouse, productId,
     // Load all warehouses for the dropdown
     const wRes = await fetch("/warehouses");
     const warehouses = await wRes.json();
-
+    
     // Populate dropdown
     const select = document.getElementById("transferToWarehouseSelect");
     select.innerHTML = `
-        <option value="">-- Choose A Warehouse --</option>
-        ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
-    `;
-}
+        <option value="">-- Choose A Warehouse --</option>`;
+      for (const w of warehouses) {
+    const invRes = await fetch(`/inventory/warehouse/${w.warehouseId}`);
+    const items = await invRes.json();
 
+    // find the item for this product
+    const record = items.find(i => i.product.productId === productId);
+    const qty = record ? record.quantity : 0;
+
+    select.innerHTML += `
+      <option value="${w.warehouseId}">
+        ${w.name} — ${qty} In Stock
+      </option>
+    `;
+  }
+}
 
 function closeTransferInventoryModal() {
     document.getElementById("transferInventoryModal").style.display = "none";
-    document.getElementById("WarehouseInventoryModal").style.display = "none";
+    document.getElementById("transferAmountInput").value = "";
 }
 
 async function confirmTransferInventory() {
@@ -1281,44 +1259,7 @@ function closeDeleteWarehouseModal() {
     document.getElementById("deleteWarehouseModal").style.display = "none";
 }
 
-// ============================== CHECKOUT MODAL SECTION ==============================
-async function openCheckoutModal() {
-  const modal = document.getElementById("checkoutModal");
-  const modalContent = document.getElementById("checkoutModalContent");
-  modal.style.display = "flex";
 
-        const res = await fetch("/products");
-        const products = await res.json();
-        const wRes = await fetch("/warehouses");
-        const warehouses = await wRes.json();
-
-        modalContent.innerHTML = `
-          <button id="closeCheckoutModalBtn" class="close-btn" aria-label="Close">&times;</button>
-          
-          <h2>Select Warehouse</h2>
-          <select id="checkoutWarehouseSelect" style="margin-top:10px;width:100%;padding:8px;">
-              <option value="">-- Choose a warehouse --</option>
-              ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
-          </select>
-
-          <h2 style="margin-top:20px;">Select Product to Checkout</h2>
-          <select id="checkoutProductSelect" style="margin-top:10px;width:100%;padding:8px;">
-              <option value="">-- Choose a product --</option>
-              ${products.map(p => `<option value="${p.productId}">${p.productName}</option>`).join("")}
-          </select>
-
-          <div id="checkoutProductDetails" style="margin-top:15px;color:#ddd;font-size:0.9rem;"></div>
-
-          <div style="text-align:right;margin-top:20px;">
-              <button id="submitCheckoutBtn" class="btn" disabled onClick="checkoutItem(${p.productId})">Submit Checkout</button>
-          </div>
-          `;
-
-          
-        document.getElementById("closeCheckoutModalBtn").addEventListener("click", () => {
-            document.getElementById("checkoutModal").style.display = "none";
-        });
-      }
 // ============================== CHECKOUT MODAL SECTION ==============================
 async function openCheckoutModal() {
   const modal = document.getElementById("checkoutModal");
@@ -1333,13 +1274,13 @@ async function openCheckoutModal() {
     <button id="closeCheckoutModalBtn" class="close-btn" aria-label="Close">&times;</button>
 
     <h2>Select Warehouse</h2>
-    <select id="checkoutWarehouseSelect" style="margin-top:10px;width:100%;padding:8px;">
+      <select id="checkoutWarehouseSelect" class="select-dd" style="margin-top:10px;">
       <option value="">-- Choose a warehouse --</option>
       ${warehouses.map(w => `<option value="${w.warehouseId}">${w.name}</option>`).join("")}
     </select>
 
     <h2 style="margin-top:20px;">Select Product</h2>
-    <select id="checkoutProductSelect" style="margin-top:10px;width:100%;padding:8px;">
+    <select id="checkoutProductSelect" class="select-dd" style="margin-top:10px;">
       <option value="">-- Choose a product --</option>
     </select>
 
@@ -1399,7 +1340,8 @@ async function openCheckoutModal() {
 
     inventory.forEach(item => {
       const p = item.product;
-      productSelect.innerHTML += `<option value="${p.productId}">${p.productName}</option>`;
+      const quantity = item.quantity || 0;
+      productSelect.innerHTML += `<option value="${p.productId}">${p.productName} — ${quantity} In Stock</option>`;
     });
   });
 
@@ -1611,32 +1553,67 @@ function formatPhone(phone) {
 }
 
 
-// ============================== FILTERING SEARCH BAR ==============================
 
-// ============================== FILTERING RESTOCKS SECTION ==============================
-document.getElementById("searchInputRestocks").addEventListener("input", function () {
-  filterRestocks(this.value.trim().toLowerCase());
-});
+// ============================== SEARCH FILTERING RESTOCKS SECTION ==============================
+// global search
+document.getElementById("searchInputRestocks")
+  .addEventListener("input", applyRestockFilters);
 
-function filterRestocks(query) {
+// column searches
+document.getElementById("searchRestockId")
+  .addEventListener("input", applyRestockFilters);
+document.getElementById("searchRestockItem")
+  .addEventListener("input", applyRestockFilters);
+document.getElementById("searchRestockWarehouse")
+  .addEventListener("input", applyRestockFilters);
+document.getElementById("searchRestockDate")
+  .addEventListener("input", applyRestockFilters);
+document.getElementById("searchRestockBy")
+  .addEventListener("input", applyRestockFilters);
+
+function applyRestockFilters() {
+
+  const globalQuery    = document.getElementById("searchInputRestocks").value.trim().toLowerCase();
+  const idQuery        = document.getElementById("searchRestockId").value.trim().toLowerCase();
+  const itemQuery      = document.getElementById("searchRestockItem").value.trim().toLowerCase();
+  const warehouseQuery = document.getElementById("searchRestockWarehouse").value.trim().toLowerCase();
+  const dateQuery      = document.getElementById("searchRestockDate").value.trim().toLowerCase();
+  const byQuery        = document.getElementById("searchRestockBy").value.trim().toLowerCase();
+
   const rows = document.querySelectorAll("#restockTableBody tr");
 
   rows.forEach(row => {
     const cells = row.querySelectorAll("td");
-    if (cells.length < 5) return;
+    if (cells.length < 6) return;
 
     const restockId     = cells[0].innerText.toLowerCase();
     const item          = cells[1].innerText.toLowerCase();
-    const orderedBy     = cells[4].innerText.toLowerCase();
+    const warehouseName = cells[3].innerText.toLowerCase();
+    const date          = cells[4].innerText.toLowerCase();
+    const orderedBy     = cells[5].innerText.toLowerCase();
 
-    let matches = false;
+    const matches =
+      // global
+      (globalQuery === "" ||
+        restockId.includes(globalQuery) ||
+        item.includes(globalQuery) ||
+        warehouseName.includes(globalQuery) ||
+        date.includes(globalQuery) ||
+        orderedBy.includes(globalQuery)) &&
 
-    if (restockId.includes(query)) matches = true;
-    if (item.includes(query)) matches = true;
-    if (orderedBy.includes(query)) matches = true;
+      // column filters
+      (idQuery        === "" || restockId.includes(idQuery)) &&
+      (itemQuery      === "" || item.includes(itemQuery)) &&
+      (warehouseQuery === "" || warehouseName.includes(warehouseQuery)) &&
+      (dateQuery      === "" || date.includes(dateQuery)) &&
+      (byQuery        === "" || orderedBy.includes(byQuery));
+
     row.style.display = matches ? "" : "none";
   });
 }
+
+
+// ============================== SORTING RESTOCKS SECTION ==============================
 
 let restockSortDirection = {};
 function sortRestocks(colIndex) {
@@ -1658,7 +1635,7 @@ function sortRestocks(colIndex) {
     }
 
     // Restock Date (MM/DD/YYYY)
-    if (colIndex === 3) {
+    if (colIndex === 4) {
       const [mA, dA, yA] = a.split("/");
       const [mB, dB, yB] = b.split("/");
       const dateA = new Date(yA, mA - 1, dA);
@@ -1675,29 +1652,59 @@ function sortRestocks(colIndex) {
   sorted.forEach(row => tbody.appendChild(row));
 }
 
-// ============================== FILTERING CHECKOUTS SECTION ==============================
-document.getElementById("searchInputCheckouts").addEventListener("input", function () {
-  filterCheckouts(this.value.trim().toLowerCase());
+// ============================== SEARCH FILTERING CHECKOUTS SECTION ==============================
+
+// global search
+document.getElementById("searchInputCheckouts")
+  .addEventListener("input", applyCheckoutFilters);
+
+// column searches
+document.getElementById("searchCheckoutId")
+  .addEventListener("input", applyCheckoutFilters);
+document.getElementById("searchCheckoutItem")
+  .addEventListener("input", applyCheckoutFilters);
+document.getElementById("searchCheckoutWarehouse")
+  .addEventListener("input", applyCheckoutFilters);
+document.getElementById("searchCheckoutDate")
+  .addEventListener("input", applyCheckoutFilters);
+document.getElementById("searchCheckoutBy")
+  .addEventListener("input", applyCheckoutFilters);
+
+function applyCheckoutFilters() {
+  const globalQuery   = document.getElementById("searchInputCheckouts").value.trim().toLowerCase();
+  const idQuery       = document.getElementById("searchCheckoutId").value.trim().toLowerCase();
+  const itemQuery     = document.getElementById("searchCheckoutItem").value.trim().toLowerCase();
+  const warehouseQuery= document.getElementById("searchCheckoutWarehouse").value.trim().toLowerCase();
+  const dateQuery     = document.getElementById("searchCheckoutDate").value.trim().toLowerCase();
+  const byQuery       = document.getElementById("searchCheckoutBy").value.trim().toLowerCase();
+
+  const rows = document.querySelectorAll("#checkoutTableBody tr");
+
+rows.forEach(row => {
+  const cells = row.querySelectorAll("td");
+  if (cells.length < 6) return;
+
+  const checkoutId   = cells[0].innerText.toLowerCase();
+  const item         = cells[1].innerText.toLowerCase();
+  const warehouse    = cells[3].innerText.toLowerCase();
+  const checkoutDate = cells[4].innerText.toLowerCase();
+  const checkedOutBy = cells[5].innerText.toLowerCase();   // FIXED
+
+  const matches =
+    (globalQuery   === "" || checkoutId.includes(globalQuery) || item.includes(globalQuery) || warehouse.includes(globalQuery) || checkedOutBy.includes(globalQuery)) &&
+    (idQuery       === "" || checkoutId.includes(idQuery)) &&
+    (itemQuery     === "" || item.includes(itemQuery)) &&
+    (warehouseQuery=== "" || warehouse.includes(warehouseQuery)) &&
+    (dateQuery     === "" || checkoutDate.includes(dateQuery)) &&
+    (byQuery       === "" || checkedOutBy.includes(byQuery));
+
+  row.style.display = matches ? "" : "none";
 });
 
-function filterCheckouts(query) {
-  const rows = document.querySelectorAll("#checkoutTableBody tr");
-  rows.forEach(row => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length < 5) return;
-
-    const checkoutId     = cells[0].innerText.toLowerCase();
-    const item          = cells[1].innerText.toLowerCase();
-    const checkedOutBy     = cells[4].innerText.toLowerCase();
-
-    let matches = false;
-
-    if (checkoutId.includes(query)) matches = true;
-    if (item.includes(query)) matches = true;
-    if (checkedOutBy.includes(query)) matches = true;
-    row.style.display = matches ? "" : "none";
-  });
 }
+
+
+// ============================== SORTING CHECKOUTS SECTION ==============================
 
 let checkoutSortDirection = {};
 function sortCheckouts(colIndex) {
@@ -1719,7 +1726,7 @@ function sortCheckouts(colIndex) {
     }
 
     // Checkout Date (MM/DD/YYYY)
-    if (colIndex === 3) {
+    if (colIndex === 4) {
       const [mA, dA, yA] = a.split("/");
       const [mB, dB, yB] = b.split("/");
       const dateA = new Date(yA, mA - 1, dA);
@@ -1736,27 +1743,57 @@ function sortCheckouts(colIndex) {
   sorted.forEach(row => tbody.appendChild(row));
 }
 
-// ============================== FILTERING WAREHOUSES SECTION ==============================
-document.getElementById("searchInputWarehouses").addEventListener("input", function () {
-  filterWarehouses(this.value.trim().toLowerCase());
-});
+// ============================== SEARCH FILTERING WAREHOUSES SECTION ==============================
+// global search
+document.getElementById("searchInputWarehouses")
+  .addEventListener("input", applyWarehouseFilters);
 
-function filterWarehouses(query) {
+// column searches
+document.getElementById("searchWarehouseName")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseLocation")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseTotalSupply")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseCapacity")
+  .addEventListener("input", applyWarehouseFilters);
+
+function applyWarehouseFilters() {
+
+  const globalQuery    = document.getElementById("searchInputWarehouses").value.trim().toLowerCase();
+  const nameQuery      = document.getElementById("searchWarehouseName").value.trim().toLowerCase();
+  const locationQuery  = document.getElementById("searchWarehouseLocation").value.trim().toLowerCase();
+  const supplyQuery    = document.getElementById("searchWarehouseTotalSupply").value.trim().toLowerCase();
+  const capacityQuery  = document.getElementById("searchWarehouseCapacity").value.trim().toLowerCase();
+
   const rows = document.querySelectorAll("#warehouseTableBody tr");
 
   rows.forEach(row => {
     const cells = row.querySelectorAll("td");
-    if (cells.length < 5) return;
+    if (cells.length < 4) return;
 
-    const warehouseName     = cells[0].innerText.toLowerCase();
-    const location          = cells[1].innerText.toLowerCase();
-    let matches = false;
+    const warehouseName = cells[0].innerText.toLowerCase();
+    const location      = cells[1].innerText.toLowerCase();
+    const totalSupply   = cells[2].innerText.toLowerCase();
+    const capacity      = cells[3].innerText.toLowerCase();
 
-    if (warehouseName.includes(query)) matches = true;
-    if (location.includes(query)) matches = true;
+    const matches =
+      (globalQuery === "" ||
+        warehouseName.includes(globalQuery) ||
+        location.includes(globalQuery) ||
+        totalSupply.includes(globalQuery) ||
+        capacity.includes(globalQuery)
+      ) &&
+      (nameQuery     === "" || warehouseName.includes(nameQuery)) &&
+      (locationQuery === "" || location.includes(locationQuery)) &&
+      (supplyQuery   === "" || totalSupply.includes(supplyQuery)) &&
+      (capacityQuery === "" || capacity.includes(capacityQuery));
+
     row.style.display = matches ? "" : "none";
   });
 }
+
+// ============================== SORTING WAREHOUSES SECTION ==============================
 
 let warehouseSortDirection = {};
 function sortWarehouses(colIndex) {
@@ -1787,33 +1824,65 @@ function sortWarehouses(colIndex) {
   sorted.forEach(row => tbody.appendChild(row));
 }
 
-// ============================== FILTERING PRODUCTS SECTION ==============================
-document.getElementById("searchInputProducts").addEventListener("input", function () {
-  filterProducts(this.value.trim().toLowerCase());
-});
+// ============================== SEARCH FILTERING PRODUCTS SECTION ==============================
+// global search
+document.getElementById("searchInputProducts")
+  .addEventListener("input", applyProductsFilters);
 
-function filterProducts(query) {
+// column searches
+document.getElementById("searchProductSKU")
+  .addEventListener("input", applyProductsFilters);
+document.getElementById("searchProductName")
+  .addEventListener("input", applyProductsFilters);
+document.getElementById("searchProductCategory")
+  .addEventListener("input", applyProductsFilters);
+document.getElementById("searchProductSupplier")
+  .addEventListener("input", applyProductsFilters);
+
+
+function applyProductsFilters() {
+  const globalQuery   = document.getElementById("searchInputProducts").value.trim().toLowerCase();
+  const idQuery       = document.getElementById("searchProductSKU").value.trim().toLowerCase();
+  const itemQuery     = document.getElementById("searchProductName").value.trim().toLowerCase();
+  const warehouseQuery= document.getElementById("searchProductCategory").value.trim().toLowerCase();
+  const dateQuery     = document.getElementById("searchProductSupplier").value.trim().toLowerCase();
+
   const rows = document.querySelectorAll("#productsTableBody tr");
 
-  rows.forEach(row => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length < 5) return;
+rows.forEach(row => {
+  const cells = row.querySelectorAll("td");
+  if (cells.length < 5) return;
 
-    const productSKU    = cells[0].innerText.toLowerCase();
-    const productName   = cells[1].innerText.toLowerCase();
-    const productPrice  = cells[2].innerText.replace(/[^0-9.]/g, "").toLowerCase();
-    const productCategory = cells[3].innerText.toLowerCase();
-    const productSupplier = cells[4].innerText.toLowerCase();
-    let matches = false;
+  // Columns:
+  // 0 → SKU
+  // 1 → Item name
+  // 2 → Quantity (ignored)
+  // 3 → Category
+  // 4 → Supplier
 
-    if (productSKU.includes(query)) matches = true;
-    if (productName.includes(query)) matches = true;
-    if (productPrice.includes(query)) matches = true;
-    if (productCategory.includes(query)) matches = true;
-    if (productSupplier.includes(query)) matches = true;
-    row.style.display = matches ? "" : "none";
-  });
+  const productSKU      = cells[0].innerText.toLowerCase();
+  const productName     = cells[1].innerText.toLowerCase();
+  const productCategory = cells[3].innerText.toLowerCase();
+  const productSupplier = cells[4].innerText.toLowerCase();
+
+  const matches =
+    // global
+    (globalQuery === "" ||
+      productSKU.includes(globalQuery) ||
+      productName.includes(globalQuery) ||
+      productCategory.includes(globalQuery) ||
+      productSupplier.includes(globalQuery)) &&
+    // column filters
+    (idQuery === "" || productSKU.includes(idQuery)) &&
+    (itemQuery === "" || productName.includes(itemQuery)) &&
+    (warehouseQuery === "" || productCategory.includes(warehouseQuery)) &&
+    (dateQuery === "" || productSupplier.includes(dateQuery));
+
+  row.style.display = matches ? "" : "none";
+});
 }
+
+// ============================== SORTING PRODUCTS SECTION ==============================
 
 let productSortDirection = {};
 function sortProducts(colIndex) {
@@ -1852,29 +1921,59 @@ function sortProducts(colIndex) {
 }
 
 // ============================== FILTERING SUPPLIERS SECTION ==============================
-document.getElementById("searchInputSuppliers").addEventListener("input", function () {
-  filterSuppliers(this.value.trim().toLowerCase());
-});
+// global search
+document.getElementById("searchInputSuppliers")
+  .addEventListener("input", applySupplierFilters);
 
-function filterSuppliers(query) {
+// column searches
+document.getElementById("searchSupplierName")
+  .addEventListener("input", applySupplierFilters);
+document.getElementById("searchSupplierEmail")
+  .addEventListener("input", applySupplierFilters);
+document.getElementById("searchSupplierPhone")
+  .addEventListener("input", applySupplierFilters);
+document.getElementById("searchSupplierAddress")
+  .addEventListener("input", applySupplierFilters);
+
+
+function applySupplierFilters() {
+
+  const globalQuery    = document.getElementById("searchInputSuppliers").value.trim().toLowerCase();
+  const idQuery        = document.getElementById("searchSupplierName").value.trim().toLowerCase();
+  const itemQuery      = document.getElementById("searchSupplierEmail").value.trim().toLowerCase();
+  const warehouseQuery = document.getElementById("searchSupplierPhone").value.trim().toLowerCase();
+  const dateQuery      = document.getElementById("searchSupplierAddress").value.trim().toLowerCase();
+
   const rows = document.querySelectorAll("#suppliersTableBody tr");
 
   rows.forEach(row => {
     const cells = row.querySelectorAll("td");
-    const supplierName   = cells[0].innerText.toLowerCase();
-    const contactEmail   = cells[1].innerText.toLowerCase();
-    const phone          = cells[2].innerText;
-    const formattedPhone  = phone.replace(/[^0-9]/g, "");
-    const address        = cells[3].innerText.toLowerCase();
-    let matches          = false;
+    if (cells.length < 4) return;
 
-    if (supplierName.includes(query)) matches = true;
-    if (contactEmail.includes(query)) matches = true;
-    if (phone.includes(query) || formattedPhone.includes(query)) matches = true;
-    if (address.includes(query)) matches = true;
+    const supplierName     = cells[0].innerText.toLowerCase();
+    const supplierEmail    = cells[1].innerText.toLowerCase();
+    const supplierPhone    = cells[2].innerText.toLowerCase();
+    const supplierAddress  = cells[3].innerText.toLowerCase();
+
+    const matches =
+      // global
+      (globalQuery === "" ||
+        supplierName.includes(globalQuery) ||
+        supplierEmail.includes(globalQuery) ||
+        supplierPhone.includes(globalQuery) ||
+        supplierAddress.includes(globalQuery)) &&
+
+      // column filters
+      (idQuery        === "" || supplierName.includes(idQuery)) &&
+      (itemQuery      === "" || supplierEmail.includes(itemQuery)) &&
+      (warehouseQuery === "" || supplierPhone.includes(warehouseQuery)) &&
+      (dateQuery      === "" || supplierAddress.includes(dateQuery));
+
     row.style.display = matches ? "" : "none";
   });
 }
+
+// ============================== SORTING SUPPLIERS SECTION ==============================
 
 let supplierSortDirection = {};
 function sortSuppliers(colIndex) {

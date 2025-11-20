@@ -2,7 +2,6 @@ package com.skillstorm.project1.models;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -27,7 +26,6 @@ public class RestockOrder {
 
     @ManyToOne
     @JoinColumn(name = "warehouse_id", nullable = false)
-    @JsonIgnore
     private Warehouse warehouse;
 
     @ManyToOne
@@ -36,7 +34,7 @@ public class RestockOrder {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_id", nullable = false)
+    @JoinColumn(name = "supplier_id", nullable = true)
     private Supplier supplier;
 
     @Column(nullable = false)

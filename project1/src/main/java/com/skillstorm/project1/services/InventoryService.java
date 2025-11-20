@@ -98,11 +98,13 @@ public class InventoryService {
     }
 }
 
-    public void updateInventoryLocation(Long inventoryId, int newLocation) {
+    public void updateInventoryLocationAndMinStock(Long inventoryId, int newLocation, int newMinStock) {
         Inventory inventory = inventoryRepository.findById(inventoryId)
                 .orElseThrow(() -> new IllegalArgumentException("Inventory record not found with ID " + inventoryId));
 
         inventory.setWarehouseLocation(newLocation);
+        inventory.setMinimumStock(newMinStock);
         inventoryRepository.save(inventory);
     }
+
 }

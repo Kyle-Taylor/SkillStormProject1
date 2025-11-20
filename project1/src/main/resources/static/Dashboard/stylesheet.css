@@ -234,6 +234,30 @@ tr:hover { background-color: #242424; }
   margin-right: auto;
 }
 
+
+.main-search-bar:focus {
+  border-color: #0078ff;
+  box-shadow: 0 0 0 2px rgba(0, 120, 255, 0.3);
+}
+
+.search-bar {
+    width: 45%;
+    padding: 4px 6px;
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.search-bar::placeholder {
+  color: #777;
+}
+
+.search-bar:focus {
+  border-color: #0078ff;
+  box-shadow: 0 0 0 2px rgba(0, 120, 255, 0.3);
+}
+
 .search-icon {
   position: absolute;
   left: 12px;
@@ -242,7 +266,7 @@ tr:hover { background-color: #242424; }
   pointer-events: none;
 }
 
-.search-bar {
+.main-search-bar {
   padding: 10px 14px 10px 34px;
   width: 250px;
   background-color: #1c1c1c;
@@ -254,14 +278,15 @@ tr:hover { background-color: #242424; }
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.search-bar::placeholder {
+.main-search-bar::placeholder {
   color: #777;
 }
 
-.search-bar:focus {
+.main-search-bar:focus {
   border-color: #0078ff;
   box-shadow: 0 0 0 2px rgba(0, 120, 255, 0.3);
 }
+
 
 .sort-arrow {
   font-size: 0.75rem;
@@ -276,4 +301,54 @@ th {
 
 th:hover .sort-arrow {
   opacity: 1;
+}
+
+
+.select-dd {
+  width: 95%;
+  padding: 8px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+}
+
+#warehouseTable {
+  border-collapse: collapse;
+}
+#warehouseTable th {
+  padding: 4px 6px;
+}
+
+#checkoutTable {
+  border-collapse: collapse;
+}
+#checkoutTable th {
+  padding: 4px 6px;
+}
+
+#restockTable {
+  border-collapse: collapse;
+}
+#restockTable th {
+  padding: 4px 6px;
+}
+
+#productsTable {
+  border-collapse: collapse;
+}
+#productsTable th {
+  padding: 4px 6px;
+}
+
+#suppliersTable {
+  border-collapse: collapse;
+}
+#suppliersTable th {
+  padding: 4px 6px;
+}
+
+.header-row th {
+  font-size: 1.1rem;
+  font-weight: bolder;
 }
