@@ -395,7 +395,7 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
         <td>$${i.product.price}</td>
         <td>${i.product.category || "N/A"}</td>
         <td>${i.product.supplier ? i.product.supplier.name + " (" + i.product.supplier.contactEmail + ")" : "Unknown Supplier"}</td>
-        <td>Shelf# ${i.warehouseLocation || "0"}</td>
+        <td style="min-width: 100px;">Section ${i.warehouseLocation || "0"}</td>
         <td>${i.minimumStock}</td>
         <td><button class="btn" onclick="event.stopPropagation(); openTransferInventoryModal(${i.inventoryId}, ${warehouseId}, ${i.product.productId}, '${cleanedProductName}', ${i.minimumStock})">Transfer</button></td>
         <td><button class="btn" style="background-color: Red; padding:6px 12px;" onclick="event.stopPropagation(); openDeleteInventoryItemModal(${i.inventoryId})">Delete</button></td>
@@ -451,7 +451,8 @@ function closeEditInventoryAndMinStockLocationModal() {
  * @async
  * @returns {Promise<void>}
  */
-document.getElementById("confirmEditInventoryBtn").addEventListener("click", async () => {
+document.getElementById("confirmEditInventoryBtn").addEventListener("click", async (event) => {
+  event.preventDefault();
   const newLocation = document.getElementById("editInventoryLocationInput").value.trim();
   const minimumStock = Number(document.getElementById("editInventoryMinStockInput").value);
 
@@ -475,9 +476,9 @@ document.getElementById("confirmEditInventoryBtn").addEventListener("click", asy
     });
 
     if (response.ok) {
-      showToast("Inventory location updated successfully!");
+      showToast("Inventory location and minimum stock updated successfully!");
       closeEditInventoryAndMinStockLocationModal();
-      loadWarehouses();
+      loadLowStockCount();
       loadInventoryForWarehouse(currentWarehouseId, currentWarehouseName);
     } else {
       showToast("Failed to update inventory location.", 3000);
@@ -488,6 +489,26 @@ document.getElementById("confirmEditInventoryBtn").addEventListener("click", asy
   }
 });
 
+
+// ============================== LOW STOCK COUNT ==============================
+
+/**
+ * Loads the number of inventory items that are below their minimum stock level
+ * and updates the low stock counter on the dashboard.
+ * @async
+ * @returns {Promise<void>}
+ */
+async function loadLowStockCount() {
+  try {
+    const response = await fetch("/inventory/below-minimum");
+    const items = await response.json();
+    const count = items.length;
+    document.getElementById("lowStockValue").innerHTML = `${count} <small>items</small>`;
+  } catch (err) {
+    console.error("Error fetching low-stock count:", err);
+    document.getElementById("lowStockValue").innerHTML = `<span style="color:red;">Error</span>`;
+  }
+}
 
 
 // ============================== TRANSFER INVENTORY SECTION ==============================
@@ -589,6 +610,7 @@ async function confirmTransferInventory() {
     loadWarehouses();
     loadTotalInventoryQuantityAndValue();
     showToast("Inventory transferred successfully!");
+    loadInventoryForWarehouse(fromWarehouseId, currentWarehouseName);
   } catch (err) {
     console.error("Error transferring inventory:", err);
     showToast("Error transferring inventory.", 3000);
