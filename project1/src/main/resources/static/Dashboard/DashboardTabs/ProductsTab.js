@@ -1,4 +1,11 @@
 // ============================== LOAD PRODUCTS ==============================
+
+/**
+ * Loads all products, retrieves total inventory quantity for each,
+ * builds table rows, and renders them in the Products table.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadProducts() {
     try {
     const response = await fetch("/products");
@@ -15,7 +22,9 @@ async function loadProducts() {
       const supplierInfo = p.supplier
         ? `${p.supplier.name} (${p.supplier.contactEmail || "No email"})`
         : "Unknown Supplier";
+
       const totalQuantity = await getTotalProductQuantity(p.productId);
+
       const row = document.createElement("tr");
       row.setAttribute("onclick", `openEditProductModal(${p.productId}, '${p.productName}', '${p.category}', ${p.price}, '${p.supplier?.supplierId || null}', ${totalQuantity})`);
       row.classList.add("clickable-row");
@@ -39,25 +48,44 @@ async function loadProducts() {
   }
 }
 
+
 // ============================== CREATE PRODUCT SECTION ==============================
+
+/**
+ * Opens the Create Product modal and preloads supplier names.
+ * @returns {void}
+ */
 function openCreateProductModal() {
   document.getElementById("createProductModal").style.display = "flex";
   loadSupplierNames(null, "createProductSupplierSelect");
 }
+
+/**
+ * Closes the Create Product modal and resets the form.
+ * @returns {void}
+ */
 function closeCreateProductModal() {
   document.getElementById("createProductForm").reset();
   document.getElementById("createProductModal").style.display = "none";
 }
 
+/**
+ * Submits a new product to the backend.
+ * Performs validation and updates UI on success.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function submitNewProduct() {
   const name = document.getElementById("productNameInput").value.trim();
   const category = document.getElementById("productCategoryInput").value.trim();
   const price = parseFloat(document.getElementById("productPriceInput").value);
   const supplierId = document.getElementById("createProductSupplierSelect").value || null;
+
   if (!name || !category || !price) {
     showToast("Please fill out all fields. ⚠️");
     return;
   }
+
   try {
     const response = await fetch("/products/create_product", {
       method: "POST",
@@ -68,7 +96,9 @@ async function submitNewProduct() {
         price: price, 
         supplierId: supplierId})
     });
+
     console.log(response.status);
+
     if (response.ok) {
       showToast("Product created successfully!");
       closeCreateProductModal();
@@ -87,6 +117,14 @@ async function submitNewProduct() {
     showToast("Error creating product.", 3000);
   }
 }
+
+/**
+ * Loads suppliers into a select dropdown.
+ * @async
+ * @param {number|null} selectedSupplierId
+ * @param {string} selectElementId
+ * @returns {Promise<void>}
+ */
 async function loadSupplierNames(selectedSupplierId, selectElementId) {
   try {
     const response = await fetch("/suppliers");
@@ -94,7 +132,6 @@ async function loadSupplierNames(selectedSupplierId, selectElementId) {
 
     const supplierSelect = document.getElementById(selectElementId);
 
-    // Clear old options
     supplierSelect.innerHTML = `
       <option value="">-- Select Supplier --</option>
     `;
@@ -118,7 +155,20 @@ async function loadSupplierNames(selectedSupplierId, selectElementId) {
 
 document.getElementById("submitProductBtn").addEventListener("click", submitNewProduct);
 
+
 // ============================== EDIT PRODUCT SECTION ==============================
+
+/**
+ * Opens edit modal for a specific product and preloads its data.
+ * Sets up update and delete event handlers.
+ * @param {number} id
+ * @param {string} name
+ * @param {string} category
+ * @param {number} price
+ * @param {number|null} supplierId
+ * @param {number} totalQuantity
+ * @returns {void}
+ */
 function openEditProductModal(id, name, category, price, supplierId, totalQuantity) {
   loadSupplierNames(supplierId, "editProductSupplierSelect");
   document.getElementById("editProductModal").style.display = "flex";
@@ -137,6 +187,7 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
       showToast("Please fill out all fields. ⚠️");
       return;
     }
+
     try {
       const response = await fetch(`/products/edit_product/${id}`, {
         method: "PUT",
@@ -162,26 +213,52 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
       console.error("Error updating product:", err);
       showToast("Error updating product.", 3000);
     }
-  }
+  };
+
   document.getElementById("deleteProductBtn").onclick = () => {
-  openDeleteProductModal(id);
-};
+    openDeleteProductModal(id);
+  };
 }
+
+/**
+ * Closes the edit product modal and resets the form.
+ * @returns {void}
+ */
 function closeEditProductModal() {
   document.getElementById("editProductModal").style.display = "none";
   document.getElementById("editProductForm").reset();
 }
 
+
 // ============================== DELETE PRODUCT SECTION ==============================
+
+/**
+ * Opens the delete confirmation modal for a product.
+ * @param {number} productId
+ * @returns {void}
+ */
 function openDeleteProductModal(productId) {
   document.getElementById("deleteProductModal").style.display = "flex";
   document.getElementById("confirmDeleteProductBtn").addEventListener("click", () => {
-  confirmDeleteProduct(productId);
+    confirmDeleteProduct(productId);
   });
 }
+
+/**
+ * Closes delete-product modal.
+ * @returns {void}
+ */
 function closeDeleteProductModal() {
   document.getElementById("deleteProductModal").style.display = "none";
 }
+
+/**
+ * Performs DELETE request to remove product.
+ * Updates UI on success.
+ * @async
+ * @param {number} productId
+ * @returns {Promise<void>}
+ */
 async function confirmDeleteProduct(productId) {
   try {
     const response = await fetch(`/products/delete/${productId}`, {
@@ -204,7 +281,15 @@ async function confirmDeleteProduct(productId) {
   }
 }
 
+
 // ============================== GET TOTAL PRODUCT QUANTITY  ==============================
+
+/**
+ * Fetches the total inventory quantity for a specific product.
+ * @async
+ * @param {number} productId
+ * @returns {Promise<number>} total quantity
+ */
 async function getTotalProductQuantity(productId) { 
     try {
         const response = await fetch(`/inventory/product/${productId}`);
@@ -220,7 +305,9 @@ async function getTotalProductQuantity(productId) {
     }
 }
 
+
 // ============================== SEARCH FILTERING PRODUCTS SECTION ==============================
+
 // global search
 document.getElementById("searchInputProducts")
   .addEventListener("input", applyProductsFilters);
@@ -235,7 +322,10 @@ document.getElementById("searchProductCategory")
 document.getElementById("searchProductSupplier")
   .addEventListener("input", applyProductsFilters);
 
-
+/**
+ * Applies global and column-based filters to the products table.
+ * @returns {void}
+ */
 function applyProductsFilters() {
   const globalQuery   = document.getElementById("searchInputProducts").value.trim().toLowerCase();
   const idQuery       = document.getElementById("searchProductSKU").value.trim().toLowerCase();
@@ -249,26 +339,17 @@ rows.forEach(row => {
   const cells = row.querySelectorAll("td");
   if (cells.length < 5) return;
 
-  // Columns:
-  // 0 → SKU
-  // 1 → Item name
-  // 2 → Quantity (ignored)
-  // 3 → Category
-  // 4 → Supplier
-
   const productSKU      = cells[0].innerText.toLowerCase();
   const productName     = cells[1].innerText.toLowerCase();
   const productCategory = cells[3].innerText.toLowerCase();
   const productSupplier = cells[4].innerText.toLowerCase();
 
   const matches =
-    // global
     (globalQuery === "" ||
       productSKU.includes(globalQuery) ||
       productName.includes(globalQuery) ||
       productCategory.includes(globalQuery) ||
       productSupplier.includes(globalQuery)) &&
-    // column filters
     (idQuery === "" || productSKU.includes(idQuery)) &&
     (itemQuery === "" || productName.includes(itemQuery)) &&
     (warehouseQuery === "" || productCategory.includes(warehouseQuery)) &&
@@ -278,14 +359,21 @@ rows.forEach(row => {
 });
 }
 
+
 // ============================== SORTING PRODUCTS SECTION ==============================
 
 let productSortDirection = {};
+
+/**
+ * Sorts the products table by a selected column.
+ * Handles numeric, price, and text sorting.
+ * @param {number} colIndex
+ * @returns {void}
+ */
 function sortProducts(colIndex) {
   const tbody = document.getElementById("productsTableBody");
   const rows = Array.from(tbody.querySelectorAll("tr"));
 
-  // toggle asc/desc
   productSortDirection[colIndex] = !productSortDirection[colIndex];
   const asc = productSortDirection[colIndex];
 
@@ -293,21 +381,21 @@ function sortProducts(colIndex) {
     const a = rowA.children[colIndex].innerText.trim();
     const b = rowB.children[colIndex].innerText.trim();
 
-    // Total Stock and Capacity (numeric)
+    // SKU or Total Stock (numeric)
     if (colIndex === 0 || colIndex === 5) {
-      // Remove commas before parsing
       const numA = parseInt(a.replace(/,/g, ""), 10);
       const numB = parseInt(b.replace(/,/g, ""), 10);
       return asc ? numA - numB : numB - numA;
     }
-    // Price column. we need to ignore the $ sign
+
+    // Price column
     if(colIndex === 2){
       const priceA = parseFloat(a.replace(/[^0-9.]/g, ""));
       const priceB = parseFloat(b.replace(/[^0-9.]/g, ""));
       return asc ? priceA - priceB : priceB - priceA;
     }
 
-    // Default: text
+    // Default: text sorting
     const aa = a.toLowerCase();
     const bb = b.toLowerCase();
     return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);

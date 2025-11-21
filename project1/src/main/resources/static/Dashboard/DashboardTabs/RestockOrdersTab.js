@@ -1,4 +1,11 @@
 // ============================== LOAD RESTOCK ORDERS ==============================
+
+/**
+ * Loads all restock orders from the server, reverses them so the newest appear first,
+ * and populates the restock table. Handles empty states and error states.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadRestockOrders() {
   try {
     const response = await fetch("/restocks");
@@ -32,7 +39,17 @@ async function loadRestockOrders() {
   }
 }
 
+
+
 // ============================== RESTOCK MODAL ==============================
+
+/**
+ * Opens and renders the Restock modal.  
+ * Loads warehouses & products, attaches event handlers, handles input validation,
+ * and processes the creation of a new restock order.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function openRestockModal() {
   const modal = document.getElementById("restockModal");
   const modalContent = document.getElementById("restockModalContent");
@@ -81,7 +98,9 @@ async function openRestockModal() {
   const detailsDiv = document.getElementById("restockProductDetails");
   const submitBtn = document.getElementById("submitRestockBtn");
 
-  // Enable submit only when valid
+  /**
+   * Enables or disables the submit button depending on valid selections.
+   */
   function updateSubmitState() {
     const warehouseId = warehouseSelect.value;
     const productId = productSelect.value;
@@ -94,24 +113,24 @@ async function openRestockModal() {
   amountInput.addEventListener("input", updateSubmitState);
 
   warehouseSelect.addEventListener("change", async () => {
-  const warehouseId = warehouseSelect.value;
+    const warehouseId = warehouseSelect.value;
 
-  productSelect.innerHTML = `<option value="">-- Choose a product --</option>`;
-  detailsDiv.innerHTML = "";
-  amountContainer.style.display = "none";
-  submitBtn.disabled = true;
+    productSelect.innerHTML = `<option value="">-- Choose a product --</option>`;
+    detailsDiv.innerHTML = "";
+    amountContainer.style.display = "none";
+    submitBtn.disabled = true;
 
-  if (!warehouseId) return;
+    if (!warehouseId) return;
 
-  // Load ALL products instead of only products in this warehouse
-  const allProducts = await (await fetch(`/products`)).json();
+    // Load ALL products
+    const allProducts = await (await fetch(`/products`)).json();
 
-  allProducts.forEach(p => {
-    productSelect.innerHTML += `<option value="${p.productId}">${p.productName}</option>`;
+    allProducts.forEach(p => {
+      productSelect.innerHTML += `<option value="${p.productId}">${p.productName}</option>`;
+    });
   });
-  });
 
-  // When product is selected → show details + amount input
+  // Product selected → load details
   productSelect.addEventListener("change", async (e) => {
     const productId = e.target.value;
 
@@ -161,7 +180,7 @@ async function openRestockModal() {
     updateSubmitState();
   });
 
-  // Submit restock order
+  // Submit button — create restock
   submitBtn.addEventListener("click", async () => {
     const warehouseId = warehouseSelect.value;
     const productId = productSelect.value;
@@ -199,6 +218,9 @@ async function openRestockModal() {
   });
 }
 
+/**
+ * Closes the restock modal.
+ */
 function closeRestockModal() {
   document.getElementById("restockModal").style.display = "none";
 }
@@ -207,7 +229,6 @@ function closeRestockModal() {
 
 // ============================== SEARCH FILTERING RESTOCKS SECTION ==============================
 
-// global search
 document.getElementById("searchInputRestocks")
   .addEventListener("input", applyRestockFilters);
 
@@ -223,7 +244,11 @@ document.getElementById("searchRestockDate")
 document.getElementById("searchRestockBy")
   .addEventListener("input", applyRestockFilters);
 
-
+/**
+ * Applies search filters to the restock table based on
+ * global filter and individual column filters.
+ * @returns {void}
+ */
 function applyRestockFilters() {
 
   const globalQuery    = document.getElementById("searchInputRestocks").value.trim().toLowerCase();
@@ -271,6 +296,12 @@ function applyRestockFilters() {
 
 let restockSortDirection = {};
 
+/**
+ * Sorts restock orders in the table by the selected column.
+ * Handles numeric sorting, date sorting, and text sorting.
+ * @param {number} colIndex - Index of column clicked.
+ * @returns {void}
+ */
 function sortRestocks(colIndex) {
   const tbody = document.getElementById("restockTableBody");
   const rows = Array.from(tbody.querySelectorAll("tr"));
@@ -298,7 +329,7 @@ function sortRestocks(colIndex) {
       return asc ? dateA - dateB : dateB - dateA;
     }
 
-    // Default: text (Item Restocked, Ordered By)
+    // Default: text
     const aa = a.toLowerCase();
     const bb = b.toLowerCase();
     return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);

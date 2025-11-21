@@ -1,4 +1,11 @@
 // ============================== LOAD WAREHOUSES ==============================
+
+/**
+ * Loads all warehouses from the server, updates the warehouse table,
+ * highlights warehouses near capacity, and updates the dashboard count.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadWarehouses() {
   try {
     const response = await fetch("/warehouses");
@@ -48,95 +55,29 @@ async function loadWarehouses() {
   }
 }
 
+/**
+ * Determines whether a warehouse is near capacity.
+ * @param {number} totalSupply - Current supply stored.
+ * @param {number} capacity - Maximum warehouse capacity.
+ * @returns {boolean} True if warehouse is at or above 90% capacity.
+ */
 function loadWarehousesNearCapacity(totalSupply, capacity){
-  const warningThreshold = 0.9; // 90% capacity
+  const warningThreshold = 0.9;
   return totalSupply / capacity >= warningThreshold;
 }
 
-
-
-// ============================== FILTERING WAREHOUSES SECTION ==============================
-document.getElementById("searchInputWarehouses")
-  .addEventListener("input", applyWarehouseFilters);
-document.getElementById("searchWarehouseName")
-  .addEventListener("input", applyWarehouseFilters);
-document.getElementById("searchWarehouseLocation")
-  .addEventListener("input", applyWarehouseFilters);
-document.getElementById("searchWarehouseTotalSupply")
-  .addEventListener("input", applyWarehouseFilters);
-document.getElementById("searchWarehouseCapacity")
-  .addEventListener("input", applyWarehouseFilters);
-
-function applyWarehouseFilters() {
-
-  const globalQuery    = document.getElementById("searchInputWarehouses").value.trim().toLowerCase();
-  const nameQuery      = document.getElementById("searchWarehouseName").value.trim().toLowerCase();
-  const locationQuery  = document.getElementById("searchWarehouseLocation").value.trim().toLowerCase();
-  const supplyQuery    = document.getElementById("searchWarehouseTotalSupply").value.trim().toLowerCase();
-  const capacityQuery  = document.getElementById("searchWarehouseCapacity").value.trim().toLowerCase();
-
-  const rows = document.querySelectorAll("#warehouseTableBody tr");
-
-  rows.forEach(row => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length < 4) return;
-
-    const warehouseName = cells[0].innerText.toLowerCase();
-    const location      = cells[1].innerText.toLowerCase();
-    const totalSupply   = cells[2].innerText.toLowerCase();
-    const capacity      = cells[3].innerText.toLowerCase();
-
-    const matches =
-      (globalQuery === "" ||
-        warehouseName.includes(globalQuery) ||
-        location.includes(globalQuery) ||
-        totalSupply.includes(globalQuery) ||
-        capacity.includes(globalQuery)
-      ) &&
-      (nameQuery     === "" || warehouseName.includes(nameQuery)) &&
-      (locationQuery === "" || location.includes(locationQuery)) &&
-      (supplyQuery   === "" || totalSupply.includes(supplyQuery)) &&
-      (capacityQuery === "" || capacity.includes(capacityQuery));
-
-    row.style.display = matches ? "" : "none";
-  });
-}
-
-
-
-// ============================== SORTING WAREHOUSES SECTION ==============================
-let warehouseSortDirection = {};
-
-function sortWarehouses(colIndex) {
-  const tbody = document.getElementById("warehouseTableBody");
-  const rows = Array.from(tbody.querySelectorAll("tr"));
-
-  warehouseSortDirection[colIndex] = !warehouseSortDirection[colIndex];
-  const asc = warehouseSortDirection[colIndex];
-
-  const sorted = rows.sort((rowA, rowB) => {
-    const a = rowA.children[colIndex].innerText.trim();
-    const b = rowB.children[colIndex].innerText.trim();
-
-    if (colIndex === 2 || colIndex === 3) {
-      const numA = parseInt(a.replace(/,/g, ""), 10);
-      const numB = parseInt(b.replace(/,/g, ""), 10);
-      return asc ? numA - numB : numB - numA;
-    }
-
-    const aa = a.toLowerCase();
-    const bb = b.toLowerCase();
-    return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
-  });
-
-  sorted.forEach(row => tbody.appendChild(row));
-}
-
-
-
 // ============================== EDIT WAREHOUSE SECTION ==============================
+
 let editingWarehouseId = null;
 
+/**
+ * Opens the edit warehouse modal and pre-fills its fields.
+ * @param {number} id
+ * @param {string} name
+ * @param {string} location
+ * @param {number} capacity
+ * @returns {void}
+ */
 function openEditWarehouseModal(id, name, location, capacity) {
   editingWarehouseId = id;
 
@@ -147,17 +88,20 @@ function openEditWarehouseModal(id, name, location, capacity) {
   document.getElementById("editWarehouseModal").style.display = "flex";
 }
 
+/**
+ * Closes the edit warehouse modal and resets the form.
+ * @returns {void}
+ */
 function closeEditWarehouseModal() {
   document.getElementById("editWarehouseModal").style.display = "none";
   document.getElementById("editWarehouseForm").reset();
 }
 
-document.getElementById("editWarehouseModal").addEventListener("click", (e) => {
-  if (e.target.id === "editWarehouseModal") {
-    closeEditWarehouseModal();
-  }
-});
-
+/**
+ * Submits the warehouse edits to the server.
+ * @async
+ * @returns {Promise<void>}
+ */
 document.getElementById("submitEditWarehouseBtn").addEventListener("click", async () => {
   const name = document.getElementById("editWarehouseName").value.trim();
   const location = document.getElementById("editWarehouseLocation").value.trim();
@@ -192,15 +136,29 @@ document.getElementById("submitEditWarehouseBtn").addEventListener("click", asyn
 
 
 // ============================== DELETE WAREHOUSES SECTION ==============================
+
+/**
+ * Opens the delete warehouse modal.
+ * @returns {void}
+ */
 function openDeleteWarehouseModal() {
   document.getElementById("deleteWarehouseModal").style.display = "flex";
   loadDeleteWarehouseList();
 }
 
+/**
+ * Closes the delete warehouse modal.
+ * @returns {void}
+ */
 function closeDeleteWarehouseModal() {
   document.getElementById("deleteWarehouseModal").style.display = "none";
 }
 
+/**
+ * Loads the list of warehouses into the delete modal with checkboxes.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadDeleteWarehouseList() {
   const list = document.getElementById("deleteWarehouseList");
   list.innerHTML = "Loading...";
@@ -257,6 +215,11 @@ async function loadDeleteWarehouseList() {
 
 
 // ============================== DELETE CONFIRMATION ==============================
+
+/**
+ * Confirms selection of warehouses to delete and opens the confirmation box.
+ * @returns {void}
+ */
 document.getElementById("submitDeleteWarehouseBtn").addEventListener("click", () => {
   const selected = document.querySelectorAll("input[name='deleteWarehouse']:checked");
 
@@ -269,11 +232,20 @@ document.getElementById("submitDeleteWarehouseBtn").addEventListener("click", ()
   document.getElementById("confirmDeleteBox").style.display = "block";
 });
 
+/**
+ * Cancels deletion confirmation modal.
+ * @returns {void}
+ */
 document.getElementById("confirmNoBtn").addEventListener("click", () => {
   document.getElementById("confirmOverlay").style.display = "none";
   document.getElementById("confirmDeleteBox").style.display = "none";
 });
 
+/**
+ * Deletes selected warehouses from the server.
+ * @async
+ * @returns {Promise<void>}
+ */
 document.getElementById("confirmYesBtn").addEventListener("click", async () => {
   const selectedWarehouses = Array.from(
     document.querySelectorAll("input[name='deleteWarehouse']:checked")
@@ -298,6 +270,11 @@ document.getElementById("confirmYesBtn").addEventListener("click", async () => {
 
 
 // ============================== CREATE WAREHOUSE ==============================
+
+/**
+ * Opens the create warehouse modal.
+ * @returns {void}
+ */
 function openCreateWarehouseModal() {
   document.getElementById("createWarehouseModal").style.display = "flex";
 }
@@ -313,6 +290,11 @@ document.getElementById("createWarehouseModal").addEventListener("click", (e) =>
   }
 });
 
+/**
+ * Handles submission of new warehouse creation.
+ * @async
+ * @returns {Promise<void>}
+ */
 document.getElementById("submitWarehouseBtn").addEventListener("click", async () => {
   const name = document.getElementById("warehouseNameInput").value.trim();
   const location = document.getElementById("warehouseLocationInput").value.trim();
@@ -324,7 +306,7 @@ document.getElementById("submitWarehouseBtn").addEventListener("click", async ()
   }
 
   try {
-    const response = await fetch("/warehouses/create_warehouse", {
+   const response = await fetch("/warehouses/create_warehouse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, location, capacity })
@@ -347,15 +329,34 @@ document.getElementById("submitWarehouseBtn").addEventListener("click", async ()
 
 
 // ============================== WAREHOUSE INVENTORY MODAL ==============================
+
+/**
+ * Opens the warehouse inventory modal.
+ * @param {number} warehouseId
+ * @param {string} warehouseName
+ * @returns {void}
+ */
 function openWarehouseInventoryModal(warehouseId, warehouseName) {
   document.getElementById("WarehouseInventoryModal").style.display = "flex";
   loadInventoryForWarehouse(warehouseId, warehouseName);
 }
 
+/**
+ * Closes the warehouse inventory modal.
+ * @returns {void}
+ */
 function closeWarehouseInventoryModal() {
   document.getElementById("WarehouseInventoryModal").style.display = "none";
 }
 
+/**
+ * Loads inventory items belonging to the warehouse and populates the inventory modal table.
+ * Highlights items below minimum stock.
+ * @async
+ * @param {number} warehouseId
+ * @param {string} warehouseName
+ * @returns {Promise<void>}
+ */
 async function loadInventoryForWarehouse(warehouseId, warehouseName) {
   try {
     document.getElementById("warehouseInventoryTitle").textContent =
@@ -373,7 +374,10 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
 
     inventory.forEach(i => {
       const row = document.createElement("tr");
-      row.setAttribute("onclick", `openEditInventoryLocationModal('${i.product.productName}', ${i.inventoryId}, ${warehouseId}, '${warehouseName}', '${i.warehouseLocation || ""}', ${i.minimumStock})`);
+      row.setAttribute(
+        "onclick",
+        `openEditInventoryLocationModal('${i.product.productName}', ${i.inventoryId}, ${warehouseId}, '${warehouseName}', '${i.warehouseLocation || ""}', ${i.minimumStock})`
+      );
       row.classList.add("clickable-row");
 
       const cleanedProductName = i.product.productName
@@ -408,10 +412,21 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
 
 
 // ============================== EDIT INVENTORY LOCATION AND MIN STOCK ==============================
+
 let editingInventoryId = null;
 let currentWarehouseId = null;
 let currentWarehouseName = null;
 
+/**
+ * Opens the edit modal for updating inventory shelf location and minimum stock.
+ * @param {string} productName
+ * @param {number} inventoryId
+ * @param {number} warehouseId
+ * @param {string} warehouseName
+ * @param {string|number} warehouseLocation
+ * @param {number} minStock
+ * @returns {void}
+ */
 function openEditInventoryLocationModal(productName, inventoryId, warehouseId, warehouseName, warehouseLocation, minStock) {
   editingInventoryId = inventoryId;
   currentWarehouseId = warehouseId;
@@ -423,10 +438,19 @@ function openEditInventoryLocationModal(productName, inventoryId, warehouseId, w
   document.getElementById("editInventoryItemName").textContent = productName;
 }
 
+/**
+ * Closes the inventory edit modal.
+ * @returns {void}
+ */
 function closeEditInventoryAndMinStockLocationModal() {
   document.getElementById("editInventoryLocationModal").style.display = "none";
 }
 
+/**
+ * Submits updated location and minimum stock for the selected inventory item.
+ * @async
+ * @returns {Promise<void>}
+ */
 document.getElementById("confirmEditInventoryBtn").addEventListener("click", async () => {
   const newLocation = document.getElementById("editInventoryLocationInput").value.trim();
   const minimumStock = Number(document.getElementById("editInventoryMinStockInput").value);
@@ -467,10 +491,20 @@ document.getElementById("confirmEditInventoryBtn").addEventListener("click", asy
 
 
 // ============================== TRANSFER INVENTORY SECTION ==============================
+
 let inventoryToTransfer = null;
 let fromWarehouseId = null;
 let transferProductId = null;
 
+/**
+ * Opens the transfer inventory modal and loads warehouse list with current stock info.
+ * @async
+ * @param {number} inventoryId
+ * @param {number} fromWarehouse
+ * @param {number} productId
+ * @param {string} productName
+ * @returns {Promise<void>}
+ */
 async function openTransferInventoryModal(inventoryId, fromWarehouse, productId, productName) {
   inventoryToTransfer = inventoryId;
   fromWarehouseId = fromWarehouse;
@@ -501,11 +535,20 @@ async function openTransferInventoryModal(inventoryId, fromWarehouse, productId,
   }
 }
 
+/**
+ * Closes the transfer inventory modal.
+ * @returns {void}
+ */
 function closeTransferInventoryModal() {
   document.getElementById("transferInventoryModal").style.display = "none";
   document.getElementById("transferAmountInput").value = "";
 }
 
+/**
+ * Validates and completes an inventory transfer between warehouses.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function confirmTransferInventory() {
 
   const amount = Number(document.getElementById("transferAmountInput").value);
@@ -555,8 +598,14 @@ async function confirmTransferInventory() {
 
 
 // ============================== DELETE INVENTORY ITEM ==============================
+
 let inventoryIdToDelete = null;
 
+/**
+ * Opens the modal to confirm deletion of an inventory item.
+ * @param {number} inventoryId
+ * @returns {void}
+ */
 function openDeleteInventoryItemModal(inventoryId) {
   inventoryIdToDelete = inventoryId;
   document.getElementById("deleteInventoryItemModal").style.display = "flex";
@@ -566,10 +615,20 @@ function openDeleteInventoryItemModal(inventoryId) {
   };
 }
 
+/**
+ * Closes the delete inventory item modal.
+ * @returns {void}
+ */
 function closeDeleteInventoryItemModal() {
   document.getElementById("deleteInventoryItemModal").style.display = "none";
 }
 
+/**
+ * Sends a DELETE request for an inventory item and refreshes warehouse/inventory displays.
+ * @async
+ * @param {number} inventoryId
+ * @returns {Promise<void>}
+ */
 async function confirmDeleteInventoryItem(inventoryId) {
   try {
     await fetch(`/inventory/delete/${inventoryId}`, {
@@ -584,4 +643,93 @@ async function confirmDeleteInventoryItem(inventoryId) {
     console.error("Error deleting inventory item:", err);
     showToast("Error deleting inventory item.", 3000);
   }
+}
+
+
+// ============================== FILTERING WAREHOUSES SECTION ==============================
+
+document.getElementById("searchInputWarehouses")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseName")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseLocation")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseTotalSupply")
+  .addEventListener("input", applyWarehouseFilters);
+document.getElementById("searchWarehouseCapacity")
+  .addEventListener("input", applyWarehouseFilters);
+/**
+ * Applies filtering to the warehouse table based on global and column search inputs.
+ * @returns {void}
+ */
+function applyWarehouseFilters() {
+
+  const globalQuery    = document.getElementById("searchInputWarehouses").value.trim().toLowerCase();
+  const nameQuery      = document.getElementById("searchWarehouseName").value.trim().toLowerCase();
+  const locationQuery  = document.getElementById("searchWarehouseLocation").value.trim().toLowerCase();
+  const supplyQuery    = document.getElementById("searchWarehouseTotalSupply").value.trim().toLowerCase();
+  const capacityQuery  = document.getElementById("searchWarehouseCapacity").value.trim().toLowerCase();
+
+  const rows = document.querySelectorAll("#warehouseTableBody tr");
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 4) return;
+
+    const warehouseName = cells[0].innerText.toLowerCase();
+    const location      = cells[1].innerText.toLowerCase();
+    const totalSupply   = cells[2].innerText.toLowerCase();
+    const capacity      = cells[3].innerText.toLowerCase();
+
+    const matches =
+      (globalQuery === "" ||
+        warehouseName.includes(globalQuery) ||
+        location.includes(globalQuery) ||
+        totalSupply.includes(globalQuery) ||
+        capacity.includes(globalQuery)
+      ) &&
+      (nameQuery     === "" || warehouseName.includes(nameQuery)) &&
+      (locationQuery === "" || location.includes(locationQuery)) &&
+      (supplyQuery   === "" || totalSupply.includes(supplyQuery)) &&
+      (capacityQuery === "" || capacity.includes(capacityQuery));
+
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+
+// ============================== SORTING WAREHOUSES SECTION ==============================
+
+let warehouseSortDirection = {};
+
+/**
+ * Sorts warehouse table rows by the selected column.
+ * Handles text and numeric sorting.
+ * @param {number} colIndex - Column index clicked.
+ * @returns {void}
+ */
+function sortWarehouses(colIndex) {
+  const tbody = document.getElementById("warehouseTableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  warehouseSortDirection[colIndex] = !warehouseSortDirection[colIndex];
+  const asc = warehouseSortDirection[colIndex];
+
+  const sorted = rows.sort((rowA, rowB) => {
+    const a = rowA.children[colIndex].innerText.trim();
+    const b = rowB.children[colIndex].innerText.trim();
+
+    // numeric: total supply or capacity
+    if (colIndex === 2 || colIndex === 3) {
+      const numA = parseInt(a.replace(/,/g, ""), 10);
+      const numB = parseInt(b.replace(/,/g, ""), 10);
+      return asc ? numA - numB : numB - numA;
+    }
+
+    const aa = a.toLowerCase();
+    const bb = b.toLowerCase();
+    return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
+  });
+
+  sorted.forEach(row => tbody.appendChild(row));
 }

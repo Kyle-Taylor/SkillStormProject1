@@ -1,4 +1,10 @@
-// ============================== LOAD SUPPLIERS ==============================`
+// ============================== LOAD SUPPLIERS ==============================
+
+/**
+ * Loads all suppliers, formats phone numbers, and populates the Suppliers table.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadSuppliers() {
     try {
     const response = await fetch("/suppliers");
@@ -32,24 +38,38 @@ async function loadSuppliers() {
   }
 }
 
+
+
 // ============================== EDIT SUPPLIER ==============================
+
+/**
+ * Opens the Edit Supplier modal and populates it with supplier data.
+ * Sets up event handlers for update and delete actions.
+ * @param {number} id
+ * @param {string} name
+ * @param {string} email
+ * @param {string} phone
+ * @param {string} address
+ * @returns {void}
+ */
 function openEditSupplierModal(id, name, email, phone, address) {
   document.getElementById("deleteSupplierBtn").onclick = () => {
     openDeleteSupplierModal(id);
   };
-  document.getElementById("confirmDeleteSupplierBtn").onclick = async () => {
-    confirmDeleteSupplier(id);};
+  document.getElementById("confirmDeleteSupplierBtn").onclick = async () => {confirmDeleteSupplier(id);};
 
   document.getElementById("editSupplierModal").style.display = "flex";
   document.getElementById("editSupplierName").value = name;
   document.getElementById("editSupplierEmail").value = email;
   document.getElementById("editSupplierPhone").value = phone;
   document.getElementById("editSupplierAddress").value = address;
+
   document.getElementById("submitEditSupplierBtn").onclick = async () => {
     const updatedName = document.getElementById("editSupplierName").value.trim();
     const updatedEmail = document.getElementById("editSupplierEmail").value.trim();
     const updatedPhone = document.getElementById("editSupplierPhone").value.trim();
     const updatedAddress = document.getElementById("editSupplierAddress").value.trim();
+
     if (!updatedName || !updatedEmail || !updatedPhone || !updatedAddress) {
       showToast("Please fill out all required fields. ⚠️");
       return;
@@ -62,6 +82,7 @@ function openEditSupplierModal(id, name, email, phone, address) {
       showToast("Please enter a valid phone number. ⚠️");
       return;
     }
+
     try {
       const response = await fetch(`/suppliers/edit_supplier/${id}`, {
         method: "PUT",
@@ -73,6 +94,7 @@ function openEditSupplierModal(id, name, email, phone, address) {
           address: updatedAddress
         })
       });
+
       if (response.ok) {
         showToast("Supplier updated successfully!");
         closeEditSupplierModal();
@@ -86,23 +108,45 @@ function openEditSupplierModal(id, name, email, phone, address) {
     }
   };
 }
+
+/**
+ * Closes and resets the Edit Supplier modal.
+ * @returns {void}
+ */
 function closeEditSupplierModal() {
   document.getElementById("editSupplierModal").style.display = "none";
   document.getElementById("editSupplierForm").reset();
 }
 
+/**
+ * Opens the delete confirmation modal for a supplier.
+ * @param {number} supplierId
+ * @returns {void}
+ */
 function openDeleteSupplierModal(supplierId) {
   document.getElementById("deleteSupplierModal").style.display = "flex";
 }
+
+/**
+ * Closes the supplier delete modal.
+ * @returns {void}
+ */
 function closeDeleteSupplierModal() {
   document.getElementById("deleteSupplierModal").style.display = "none";
 }
 
+/**
+ * Deletes a supplier by ID and updates the UI.
+ * @async
+ * @param {number} supplierId
+ * @returns {Promise<void>}
+ */
 async function confirmDeleteSupplier(supplierId) {
   try {
     const response = await fetch(`/suppliers/delete/${supplierId}`, {
       method: "DELETE"
     });
+
     if (response.ok) {
       showToast("Supplier deleted successfully!");
       closeDeleteSupplierModal();
@@ -116,19 +160,40 @@ async function confirmDeleteSupplier(supplierId) {
     showToast("Error deleting supplier.");
   }
 }
+
+
+
 // ============================== CREATE SUPPLIER SECTION ==============================
+
+/**
+ * Opens the Create Supplier modal.
+ * @returns {void}
+ */
 function openCreateSupplierModal() {
   document.getElementById("createSupplierModal").style.display = "flex";
 }
+
+/**
+ * Closes the Create Supplier modal and resets the form.
+ * @returns {void}
+ */
 function closeCreateSupplierModal() {
   document.getElementById("supplierForm").reset();
   document.getElementById("createSupplierModal").style.display = "none";
 }
-async function submitNewSupplier(){
+
+/**
+ * Submits a new supplier to the backend.
+ * Performs validation and updates UI on success.
+ * @async
+ * @returns {Promise<void>}
+ */
+async function submitNewSupplier() {
   const name = document.getElementById("supplierNameInput").value.trim();
   const contactEmail = document.getElementById("supplierEmailInput").value.trim();
   const phone = document.getElementById("supplierPhoneInput").value.trim();
   const address = document.getElementById("supplierAddressInput").value.trim();
+
   if (!name || !contactEmail || !phone || !address) {
     showToast("Please fill out all required fields. ⚠️");
     return;
@@ -141,16 +206,18 @@ async function submitNewSupplier(){
     showToast("Please enter a valid phone number. ⚠️");
     return;
   }
+
   try {
     const response = await fetch("/suppliers/create_supplier", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, contactEmail, phone, address })
     });
+
     if (response.ok) {
       showToast("Supplier created successfully!");
       closeCreateSupplierModal();
-      loadSuppliers();      
+      loadSuppliers();
     } else {
       showToast("Failed to create supplier.");
     }
@@ -159,14 +226,18 @@ async function submitNewSupplier(){
     showToast("Error creating supplier.");
   }
 }
+
 document.getElementById("submitSupplierBtn").addEventListener("click", submitNewSupplier);
 
+
+
 // ============================== FILTERING SUPPLIERS SECTION ==============================
-// global search
+
+/**
+ * Global search & column search event listeners.
+ */
 document.getElementById("searchInputSuppliers")
   .addEventListener("input", applySupplierFilters);
-
-// column searches
 document.getElementById("searchSupplierName")
   .addEventListener("input", applySupplierFilters);
 document.getElementById("searchSupplierEmail")
@@ -176,9 +247,11 @@ document.getElementById("searchSupplierPhone")
 document.getElementById("searchSupplierAddress")
   .addEventListener("input", applySupplierFilters);
 
-
+/**
+ * Applies global & column filters to supplier rows.
+ * @returns {void}
+ */
 function applySupplierFilters() {
-
   const globalQuery    = document.getElementById("searchInputSuppliers").value.trim().toLowerCase();
   const idQuery        = document.getElementById("searchSupplierName").value.trim().toLowerCase();
   const itemQuery      = document.getElementById("searchSupplierEmail").value.trim().toLowerCase();
@@ -197,14 +270,12 @@ function applySupplierFilters() {
     const supplierAddress  = cells[3].innerText.toLowerCase();
 
     const matches =
-      // global
       (globalQuery === "" ||
         supplierName.includes(globalQuery) ||
         supplierEmail.includes(globalQuery) ||
         supplierPhone.includes(globalQuery) ||
         supplierAddress.includes(globalQuery)) &&
 
-      // column filters
       (idQuery        === "" || supplierName.includes(idQuery)) &&
       (itemQuery      === "" || supplierEmail.includes(itemQuery)) &&
       (warehouseQuery === "" || supplierPhone.includes(warehouseQuery)) &&
@@ -214,14 +285,21 @@ function applySupplierFilters() {
   });
 }
 
+
+
 // ============================== SORTING SUPPLIERS SECTION ==============================
 
 let supplierSortDirection = {};
+
+/**
+ * Sorts suppliers table alphabetically by chosen column.
+ * @param {number} colIndex
+ * @returns {void}
+ */
 function sortSuppliers(colIndex) {
   const tbody = document.getElementById("suppliersTableBody");
   const rows = Array.from(tbody.querySelectorAll("tr"));
 
-  // toggle asc/desc
   supplierSortDirection[colIndex] = !supplierSortDirection[colIndex];
   const asc = supplierSortDirection[colIndex];
 

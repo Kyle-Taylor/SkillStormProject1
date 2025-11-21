@@ -1,9 +1,14 @@
 const URL = "http://localhost:8080";
 
 
-
-
 // ============================== LOAD TOTAL INVENTORY QUANTITY ==============================
+
+/**
+ * Fetches all inventory items, calculates total quantity and value,
+ * formats results, and updates the dashboard display fields.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadTotalInventoryQuantityAndValue() {
     try {
       const response = await fetch(`/inventory`);
@@ -34,7 +39,16 @@ async function loadTotalInventoryQuantityAndValue() {
     }
 }
 
+
+
 // ============================== LOW STOCK COUNT ==============================
+
+/**
+ * Loads the number of inventory items that are below their minimum stock level
+ * and updates the low stock counter on the dashboard.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadLowStockCount() {
   try {
     const response = await fetch("/inventory/below-minimum");
@@ -47,8 +61,19 @@ async function loadLowStockCount() {
   }
 }
 
+
+
 // ============================== LOGIN CHECK ==============================
+
 let currentUserEmail = null;
+
+/**
+ * Checks the current logged-in user.  
+ * If no valid user session exists, redirects to the Login page.
+ * If valid, populates the user dropdown label.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function checkLogin() {
   try {
     const response = await fetch("/users/current-user");
@@ -62,34 +87,65 @@ async function checkLogin() {
   }
 }
 
+
+
 // ============================== LOGOUT ==============================
+
+/**
+ * Logs out the current user by calling the logout endpoint,
+ * then redirects to the Login page.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function logout() {
   await fetch("/users/logout", { method: "POST" });
   window.location.href = "/Login";
 }
 
+
+
 // ============================== INITIAL LOAD ==============================
+
+// Initial startup calls
 checkLogin();
 loadRestockOrders();
 loadLowStockCount();
 loadTotalInventoryQuantityAndValue();
 loadWarehouses();
 
+
+
 // ============================== DASHBOARD DROPDOWN (top right) ==============================
+
 const dropdown = document.getElementById("userDropdown");
 const menu = document.getElementById("dropdownMenu");
+
+/**
+ * Toggles the user dropdown menu when clicked.
+ */
 dropdown.addEventListener("click", () => menu.classList.toggle("show"));
+
+/**
+ * Closes the dropdown menu when users click outside of it.
+ */
 window.addEventListener("click", (e) => {
   if (!dropdown.contains(e.target)) menu.classList.remove("show");
 });
 
+
+
 // ============================== TAB SWITCHING ==============================
+
 const tabs = document.querySelectorAll(".tab");
 const restockSection = document.getElementById("restockSection");
 const warehouseSection = document.getElementById("warehouseSection");
 const checkoutSection = document.getElementById("checkoutSection");
 const productsSection = document.getElementById("productsSection");
 
+/**
+ * Handles dashboard tab switching, updating visible sections
+ * and triggering appropriate loader functions.
+ */
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tabs.forEach(t => t.classList.remove("active"));
@@ -138,7 +194,14 @@ tabs.forEach(tab => {
 });
 
 
+
 // ============================== TOAST ==============================
+
+/**
+ * Displays a temporary toast notification on the screen.
+ * @param {string} message - Text to display.
+ * @param {number} [duration=2500] - Time before toast hides.
+ */
 function showToast(message, duration = 2500) {
   const toast = document.getElementById("toast");
   toast.textContent = message;
@@ -147,7 +210,15 @@ function showToast(message, duration = 2500) {
 }
 
 
+
 // ============================== VALIDATE DATA  ==============================
+
+/**
+ * Checks whether a warehouse has enough capacity to store additional items.
+ * @param {number|string} warehouseId
+ * @param {number|string} additionalAmount
+ * @returns {Promise<boolean>} True if capacity allows, false if exceeded.
+ */
 function checkWarehouseCapacity(warehouseId, additionalAmount) {
   return Promise.all([
     fetch(`/inventory/warehouse/${warehouseId}`).then(res => res.json()),
@@ -162,7 +233,7 @@ function checkWarehouseCapacity(warehouseId, additionalAmount) {
     const cap = Number(warehouse.capacity) || 0;
     const projected = currentTotal + Number(additionalAmount);
 
-    return projected <= cap; // true = fits, false = over capacity
+    return projected <= cap;
   })
   .catch(err => {
     console.error("Error checking warehouse capacity:", err);
@@ -170,6 +241,13 @@ function checkWarehouseCapacity(warehouseId, additionalAmount) {
   });
 }
 
+/**
+ * Checks whether a warehouse has enough stock for a specific product.
+ * @param {number|string} warehouseId
+ * @param {number|string} productId
+ * @param {number|string} requiredAmount
+ * @returns {Promise<boolean>} True if enough stock is available.
+ */
 function checkIfInStock(warehouseId, productId, requiredAmount) {
   return fetch(`/inventory/warehouse/${warehouseId}`)
     .then(res => res.json())
@@ -184,6 +262,11 @@ function checkIfInStock(warehouseId, productId, requiredAmount) {
     });
 }
 
+/**
+ * Validates email format and length rules.
+ * @param {string} email
+ * @returns {boolean} True if valid email.
+ */
 function validateEmail(email) {
   if (!email || email.length > 254 || email.includes(" ")) return false;
   const parts = email.split("@");
@@ -199,28 +282,33 @@ function validateEmail(email) {
   return re.test(email.toLowerCase());
 }
 
+/**
+ * Validates a phone number by removing formatting and ensuring
+ * the resulting digit count is between 10 and 15.
+ * @param {string} phone
+ * @returns {boolean}
+ */
 function validatePhone(phone) {
   if (!phone) return false;
-  // Reject alphabet characters
   if (/[a-zA-Z]/.test(phone)) return false;
-  // Remove formatting
   const digits = phone.replace(/\D/g, "");
-  // Only allow 10–15 digits total
   return digits.length >= 10 && digits.length <= 15;
 }
 
-
+/**
+ * Formats a 10-digit phone number as "###-###-####".
+ * Leaves non-10-digit values unchanged.
+ * @param {string} phone
+ * @returns {string}
+ */
 function formatPhone(phone) {
   if (!phone) return "";
 
-  // remove non-digits
   const digits = phone.replace(/\D/g, "");
 
-  // only format if exactly 10 digits
   if (digits.length === 10) {
     return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;
   }
 
-  return phone; // leave it unchanged otherwise
+  return phone;
 }
-

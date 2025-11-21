@@ -1,4 +1,10 @@
 // ============================== LOAD CHECKOUTS ==============================
+
+/**
+ * Loads all checkout records from the backend and renders them in the table.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadCheckouts() {
   try {
     const response = await fetch("/checkouts");
@@ -31,7 +37,16 @@ async function loadCheckouts() {
   }
 } 
 
+
+
 // ============================== CHECKOUT MODAL SECTION ==============================
+
+/**
+ * Opens the checkout modal, loads warehouses & products, and initializes event listeners.
+ * Dynamically builds UI inside the modal.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function openCheckoutModal() {
   const modal = document.getElementById("checkoutModal");
   const modalContent = document.getElementById("checkoutModalContent");
@@ -40,7 +55,6 @@ async function openCheckoutModal() {
   const products = await (await fetch("/products")).json();
   const warehouses = await (await fetch("/warehouses")).json();
 
-  // Build modal UI
   modalContent.innerHTML = `
     <button id="closeCheckoutModalBtn" class="close-btn" aria-label="Close">&times;</button>
 
@@ -72,7 +86,6 @@ async function openCheckoutModal() {
     modal.style.display = "none";
   });
 
-  // Field references
   const warehouseSelect = document.getElementById("checkoutWarehouseSelect");
   const productSelect = document.getElementById("checkoutProductSelect");
   const amountInput = document.getElementById("checkoutAmount");
@@ -80,7 +93,6 @@ async function openCheckoutModal() {
   const detailsDiv = document.getElementById("checkoutProductDetails");
   const submitBtn = document.getElementById("submitCheckoutBtn");
 
-  // Enable submit button when all inputs are valid
   function updateSubmitState() {
     const warehouseId = warehouseSelect.value;
     const productId = productSelect.value;
@@ -98,7 +110,6 @@ async function openCheckoutModal() {
   warehouseSelect.addEventListener("change", async () => {
     const warehouseId = warehouseSelect.value;
 
-    // Reset product UI
     productSelect.innerHTML = `<option value="">-- Choose a product --</option>`;
     detailsDiv.innerHTML = "";
     amountContainer.style.display = "none";
@@ -106,7 +117,6 @@ async function openCheckoutModal() {
 
     if (!warehouseId) return;
 
-    // Fetch products ONLY in this warehouse
     const inventory = await (await fetch(`/inventory/warehouse/${warehouseId}`)).json();
 
     inventory.forEach(item => {
@@ -116,7 +126,6 @@ async function openCheckoutModal() {
     });
   });
 
-  // When the user selects a product
   productSelect.addEventListener("change", async (e) => {
     const productId = e.target.value;
     amountContainer.style.display = "none";
@@ -131,7 +140,6 @@ async function openCheckoutModal() {
       ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
       : "Unknown Supplier";
 
-    // Build details UI (same style as restock modal)
     detailsDiv.innerHTML = `
       <table style="width:100%; border-collapse:collapse; color:#ddd; font-size:0.9rem;">
         <tbody>
@@ -143,22 +151,18 @@ async function openCheckoutModal() {
             <td style="padding:8px 6px; width:140px; font-weight:600;">Product Name</td>
             <td style="padding:8px 6px;">${product.productName}</td>
           </tr>
-
           <tr style="border-bottom:1px solid #333;">
             <td style="padding:8px 6px; font-weight:600;">Category</td>
             <td style="padding:8px 6px;">${product.category}</td>
           </tr>
-
           <tr style="border-bottom:1px solid #333;">
             <td style="padding:8px 6px; font-weight:600;">Price</td>
             <td style="padding:8px 6px;">$${(+product.price).toFixed(2)}</td>
           </tr>
-
           <tr>
             <td style="padding:8px 6px; font-weight:600;">Supplier</td>
             <td style="padding:8px 6px;">${supplier}</td>
           </tr>
-
         </tbody>
       </table>
     `;
@@ -167,17 +171,30 @@ async function openCheckoutModal() {
     updateSubmitState();
   });
 
-  // Submit checkout
   submitBtn.addEventListener("click", submitCheckout);
 }
 
 
+
 // ============================== CLOSE CHECKOUT MODAL ==============================
+
+/**
+ * Closes the checkout modal.
+ * @returns {void}
+ */
 function closeCheckoutModal() {
   document.getElementById("checkoutModal").style.display = "none";
 }
 
-// submit checkout function
+
+
+// ============================== SUBMIT CHECKOUT ==============================
+
+/**
+ * Submits a checkout request and updates the UI if successful.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function submitCheckout() {
   const warehouseId = document.getElementById("checkoutWarehouseSelect").value;
   const productId = document.getElementById("checkoutProductSelect").value;
@@ -220,6 +237,17 @@ async function submitCheckout() {
   }
 }
 
+
+
+/**
+ * Reduces inventory quantity after a checkout.
+ * Backend updates the record and returns 200 on success.
+ * @async
+ * @param {number} warehouseId
+ * @param {number} productId
+ * @param {number} amount
+ * @returns {Promise<void>}
+ */
 async function reduceInventory(warehouseId, productId, amount) {
   try {
     const response = await fetch("/inventory/reduce", {
@@ -246,13 +274,15 @@ async function reduceInventory(warehouseId, productId, amount) {
   }
 }
 
+
+
 // ============================== SEARCH FILTERING CHECKOUTS SECTION ==============================
 
-// global search
+/**
+ * Event listeners for global + column-based filtering.
+ */
 document.getElementById("searchInputCheckouts")
   .addEventListener("input", applyCheckoutFilters);
-
-// column searches
 document.getElementById("searchCheckoutId")
   .addEventListener("input", applyCheckoutFilters);
 document.getElementById("searchCheckoutItem")
@@ -264,6 +294,10 @@ document.getElementById("searchCheckoutDate")
 document.getElementById("searchCheckoutBy")
   .addEventListener("input", applyCheckoutFilters);
 
+/**
+ * Filters checkout table rows based on global or column filters.
+ * @returns {void}
+ */
 function applyCheckoutFilters() {
   const globalQuery   = document.getElementById("searchInputCheckouts").value.trim().toLowerCase();
   const idQuery       = document.getElementById("searchCheckoutId").value.trim().toLowerCase();
@@ -274,33 +308,42 @@ function applyCheckoutFilters() {
 
   const rows = document.querySelectorAll("#checkoutTableBody tr");
 
-rows.forEach(row => {
-  const cells = row.querySelectorAll("td");
-  if (cells.length < 6) return;
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 6) return;
 
-  const checkoutId   = cells[0].innerText.toLowerCase();
-  const item         = cells[1].innerText.toLowerCase();
-  const warehouse    = cells[3].innerText.toLowerCase();
-  const checkoutDate = cells[4].innerText.toLowerCase();
-  const checkedOutBy = cells[5].innerText.toLowerCase();   // FIXED
+    const checkoutId   = cells[0].innerText.toLowerCase();
+    const item         = cells[1].innerText.toLowerCase();
+    const warehouse    = cells[3].innerText.toLowerCase();
+    const checkoutDate = cells[4].innerText.toLowerCase();
+    const checkedOutBy = cells[5].innerText.toLowerCase();
 
-  const matches =
-    (globalQuery   === "" || checkoutId.includes(globalQuery) || item.includes(globalQuery) || warehouse.includes(globalQuery) || checkedOutBy.includes(globalQuery)) &&
-    (idQuery       === "" || checkoutId.includes(idQuery)) &&
-    (itemQuery     === "" || item.includes(itemQuery)) &&
-    (warehouseQuery=== "" || warehouse.includes(warehouseQuery)) &&
-    (dateQuery     === "" || checkoutDate.includes(dateQuery)) &&
-    (byQuery       === "" || checkedOutBy.includes(byQuery));
+    const matches =
+      (globalQuery   === "" || checkoutId.includes(globalQuery) || item.includes(globalQuery) || warehouse.includes(globalQuery) || checkedOutBy.includes(globalQuery)) &&
+      (idQuery       === "" || checkoutId.includes(idQuery)) &&
+      (itemQuery     === "" || item.includes(itemQuery)) &&
+      (warehouseQuery=== "" || warehouse.includes(warehouseQuery)) &&
+      (dateQuery     === "" || checkoutDate.includes(dateQuery)) &&
+      (byQuery       === "" || checkedOutBy.includes(byQuery));
 
-  row.style.display = matches ? "" : "none";
-});
-
+    row.style.display = matches ? "" : "none";
+  });
 }
+
 
 
 // ============================== SORTING CHECKOUTS SECTION ==============================
 
 let checkoutSortDirection = {};
+
+/**
+ * Sorts checkout table rows by column:
+ * - column 0: checkoutId (numeric)
+ * - column 4: date (converted to Date object)
+ * - others: text-based sorting
+ * @param {number} colIndex
+ * @returns {void}
+ */
 function sortCheckouts(colIndex) {
   const tbody = document.getElementById("checkoutTableBody");
   const rows = Array.from(tbody.querySelectorAll("tr"));
@@ -312,14 +355,12 @@ function sortCheckouts(colIndex) {
     const a = rowA.children[colIndex].innerText.trim();
     const b = rowB.children[colIndex].innerText.trim();
 
-    // Checkout ID (numeric)
     if (colIndex === 0) {
       const numA = parseInt(a, 10);
       const numB = parseInt(b, 10);
       return asc ? numA - numB : numB - numA;
     }
 
-    // Checkout Date (MM/DD/YYYY)
     if (colIndex === 4) {
       const [mA, dA, yA] = a.split("/");
       const [mB, dB, yB] = b.split("/");
@@ -328,7 +369,6 @@ function sortCheckouts(colIndex) {
       return asc ? dateA - dateB : dateB - dateA;
     }
 
-    // Default: text (Item Checked Out, Checked Out By)
     const aa = a.toLowerCase();
     const bb = b.toLowerCase();
     return asc ? aa.localeCompare(bb) : bb.localeCompare(aa);
@@ -336,6 +376,3 @@ function sortCheckouts(colIndex) {
 
   sorted.forEach(row => tbody.appendChild(row));
 }
-
-
-
