@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpSession;
  */
 @RestController
 @RequestMapping("/checkouts")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class CheckoutController {
 
     /** Service layer that performs checkout-related business logic. */

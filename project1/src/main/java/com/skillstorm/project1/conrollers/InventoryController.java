@@ -22,7 +22,7 @@ import com.skillstorm.project1.services.WarehouseService;
 
 @RestController
 @RequestMapping("/inventory")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 /**
  * Controller providing REST endpoints for managing inventory records.
  * Handles CRUD operations, filtering, stock checks, and warehouse transfers.

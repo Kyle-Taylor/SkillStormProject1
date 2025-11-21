@@ -20,7 +20,7 @@ import com.skillstorm.project1.services.SupplierService;
 
 @RestController
 @RequestMapping("/suppliers")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class SupplierController {
 
     /** 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StockSmart | Login</title>
+  <title>StockSmart | Register</title>
   <link rel="icon" type="image/png" href="/images/stocksmartlogowithbackground.png">
   <style>
     body {
@@ -17,7 +17,7 @@
       height: 100vh;
     }
 
-    .login-container {
+    .register-container {
       background-color: #1e1e1e;
       padding: 30px 40px;
       border-radius: 12px;
@@ -27,14 +27,14 @@
       text-align: center;
     }
 
-    .login-container img {
+    .register-container img {
     width: 100px;
     margin-top: 20px;
     margin-bottom: 25px;
     transition: transform 0.2s ease-in-out;
   }
 
-  .login-container img:hover {
+  .register-container img:hover {
     transform: scale(1.05);
   }
 
@@ -96,16 +96,20 @@
 </head>
 
 <body>
-  <div class="login-container">
+  <div class="register-container">
     <img src="/images/StockSmartLogo.png" alt="StockSmart Logo">
     <hr style="width: 60%; border: 0; border-top: 1px solid #333; margin: 15px auto 25px;">
-    <h1>Welcome Back!</h1>
+    <h1>Create Account</h1>
 
-    <!-- LOGIN FORM HERE -->
-    <form onsubmit="loginUser(event)">
+    <!-- REGISTER FORM HERE -->
+    <form onsubmit="registerUser(event)">
+      <input type="text" id="firstName" placeholder="First Name" required>
+      <input type="text" id="lastName" placeholder="Last Name" required>
+      <input type="text" id="jobTitle" placeholder="Job Title" required>
       <input type="email" id="email" placeholder="Email" required>
       <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Log In</button>
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+      <button type="submit">Register</button>
       <p class="error-message" id="errorMessage">Invalid email or password</p>
     </form>
 
@@ -113,23 +117,32 @@
   </div>
 
   <script>
-    async function loginUser(event) {
+    async function registerUser(event) {
       event.preventDefault();
-
+      
+      const firstName = document.getElementById("firstName").value;
+      const lastName = document.getElementById("lastName").value;
+      const jobTitle = document.getElementById("jobTitle").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
       const errorMessage = document.getElementById("errorMessage");
 
+      if (password !== confirmPassword) {
+        errorMessage.textContent = "Passwords do not match";
+        errorMessage.style.display = "block";
+        return;
+      }
       try {
-        const response = await fetch("/users/login", {
+        const response = await fetch("/users/register", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ firstName, lastName, email, password, jobTitle})
         });
 
         if (response.ok) {
-          window.location.href = "/Dashboard"; //  Redirect immediately
+          window.location.href = "/Login";
         } else if (response.status === 401) {
           errorMessage.style.display = "block";
         } else {

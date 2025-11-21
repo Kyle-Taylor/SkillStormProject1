@@ -3,8 +3,10 @@ package com.skillstorm.project1.conrollers;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,14 +21,16 @@ import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class UserController {
 
     /**
      * Service layer for accessing and modifying user data.
      */
     private final UserService userService;
-    
+
+    @Autowired
+    private PasswordEncoder encoder;
     /**
      * Constructor-based dependency injection for UserService.
      *
@@ -81,15 +85,15 @@ public class UserController {
     public ResponseEntity<Void> loginUser(@RequestBody User loginRequest, HttpSession session) {
         Optional<User> foundUser = userService.findByEmail(loginRequest.getEmail());
 
-        if (foundUser.isPresent() && foundUser.get().getPassword().equals(loginRequest.getPassword())) {
+        if (foundUser.isPresent() && 
+            encoder.matches(loginRequest.getPassword(), foundUser.get().getPassword())) {
             session.setAttribute("user", foundUser.get());
-            return ResponseEntity.ok().build(); 
+            return ResponseEntity.ok().build();
         }
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .header("Error", "Invalid email or password")
-                .build();
-    }
+            .header("Error", "Invalid email or password")
+            .build();
+        }
 
     /**
      * Logs out the current user by invalidating the session.
@@ -103,4 +107,32 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Registers a new user account.
+     * <p>
+     * The incoming user object must contain an email and a raw (unhashed)
+     * password. The service layer automatically hashes the password before
+     * storing it. If a user with the given email already exists, a conflict
+     * response is returned.
+     *
+     * @param newUser the registration request containing user details
+     * @return {@code 201 Created} with the created user on success,
+     *         {@code 409 Conflict} if the email already exists, or
+     *         {@code 500 Internal Server Error} on unexpected errors
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User newUser) {
+        try {
+            User created = userService.createUser(newUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Email already exists");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating user");
+        }
+    }
 }

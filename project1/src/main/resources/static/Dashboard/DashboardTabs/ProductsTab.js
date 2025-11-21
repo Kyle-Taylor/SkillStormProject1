@@ -8,7 +8,7 @@
  */
 async function loadProducts() {
     try {
-    const response = await fetch("/products");
+    const response = await fetch("/products", {credentials: "include"});
     const products = await response.json();
     const body = document.getElementById("productsTableBody");
     body.innerHTML = "";
@@ -89,6 +89,7 @@ async function submitNewProduct() {
   try {
     const response = await fetch("/products/create_product", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         productName: name, 
@@ -127,7 +128,7 @@ async function submitNewProduct() {
  */
 async function loadSupplierNames(selectedSupplierId, selectElementId) {
   try {
-    const response = await fetch("/suppliers");
+    const response = await fetch("/suppliers", {credentials: "include"});
     const suppliers = await response.json();
 
     const supplierSelect = document.getElementById(selectElementId);
@@ -191,6 +192,7 @@ function openEditProductModal(id, name, category, price, supplierId, totalQuanti
     try {
       const response = await fetch(`/products/edit_product/${id}`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           productName: updatedName, 
@@ -262,7 +264,8 @@ function closeDeleteProductModal() {
 async function confirmDeleteProduct(productId) {
   try {
     const response = await fetch(`/products/delete/${productId}`, {
-      method: "DELETE"
+      method: "DELETE",
+      credentials: "include"
     });
 
     if (response.ok) {
@@ -292,7 +295,7 @@ async function confirmDeleteProduct(productId) {
  */
 async function getTotalProductQuantity(productId) { 
     try {
-        const response = await fetch(`/inventory/product/${productId}`);
+        const response = await fetch(`/inventory/product/${productId}`, {credentials: "include"});
         const inventoryItems = await response.json();
         let totalQuantity = 0;
         inventoryItems.forEach(item => {

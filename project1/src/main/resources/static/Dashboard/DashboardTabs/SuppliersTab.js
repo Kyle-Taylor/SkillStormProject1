@@ -7,7 +7,7 @@
  */
 async function loadSuppliers() {
     try {
-    const response = await fetch("/suppliers");
+    const response = await fetch("/suppliers", {credentials: "include"});
     const suppliers = await response.json();
     const body = document.getElementById("suppliersTableBody");
     body.innerHTML = "";
@@ -86,6 +86,7 @@ function openEditSupplierModal(id, name, email, phone, address) {
     try {
       const response = await fetch(`/suppliers/edit_supplier/${id}`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: updatedName,
@@ -144,7 +145,8 @@ function closeDeleteSupplierModal() {
 async function confirmDeleteSupplier(supplierId) {
   try {
     const response = await fetch(`/suppliers/delete/${supplierId}`, {
-      method: "DELETE"
+      method: "DELETE",
+      credentials: "include"
     });
 
     if (response.ok) {
@@ -210,6 +212,7 @@ async function submitNewSupplier() {
   try {
     const response = await fetch("/suppliers/create_supplier", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, contactEmail, phone, address })
     });

@@ -29,10 +29,19 @@ public class PageRedirectController implements ErrorController {
     }
 
     /**
+     * Serves the login page by forwarding to LoginPage.html.
+     * @return forward path to the login page.
+     */
+    @GetMapping("/Register")
+    public String registerPage() {
+        return "forward:/Register.html";
+    }
+
+    /**
      * Handles application-level errors and forwards the user to ErrorPage.html.
      * @return forward path to the error page.
      */
-    @RequestMapping("/Error")
+    @RequestMapping("/error")
     public String handleError() {
         return "forward:/ErrorPage.html";
     }

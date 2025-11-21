@@ -11,7 +11,7 @@ const URL = "http://localhost:8080";
  */
 async function loadTotalInventoryQuantityAndValue() {
     try {
-      const response = await fetch(`/inventory`);
+      const response = await fetch(`/inventory`, {credentials: "include"});
       const inventoryItems = await response.json();
       let totalQuantity = 0;
       let totalValue = 0;
@@ -51,7 +51,7 @@ async function loadTotalInventoryQuantityAndValue() {
  */
 async function loadLowStockCount() {
   try {
-    const response = await fetch("/inventory/below-minimum");
+    const response = await fetch("/inventory/below-minimum", {credentials: "include"});
     const items = await response.json();
     const count = items.length;
     document.getElementById("lowStockValue").innerHTML = `${count} <small>items</small>`;
@@ -76,7 +76,7 @@ let currentUserEmail = null;
  */
 async function checkLogin() {
   try {
-    const response = await fetch("/users/current-user");
+    const response = await fetch("/users/current-user", {credentials: "include"});
     if (!response.ok) return (window.location.href = "/Login");
     const user = await response.json();
     currentUserEmail = user.email;
@@ -98,7 +98,7 @@ async function checkLogin() {
  * @returns {Promise<void>}
  */
 async function logout() {
-  await fetch("/users/logout", { method: "POST" });
+  await fetch("/users/logout", { method: "POST", credentials: "include" });
   window.location.href = "/Login";
 }
 
@@ -221,8 +221,8 @@ function showToast(message, duration = 2500) {
  */
 function checkWarehouseCapacity(warehouseId, additionalAmount) {
   return Promise.all([
-    fetch(`/inventory/warehouse/${warehouseId}`).then(res => res.json()),
-    fetch(`/warehouses/${warehouseId}`).then(res => res.json())
+    fetch(`/inventory/warehouse/${warehouseId}`, {credentials: "include"}).then(res => res.json()),
+    fetch(`/warehouses/${warehouseId}`, {credentials: "include"}).then(res => res.json())
   ])
   .then(([inventoryItems, warehouse]) => {
     const currentTotal = inventoryItems.reduce(
@@ -249,7 +249,7 @@ function checkWarehouseCapacity(warehouseId, additionalAmount) {
  * @returns {Promise<boolean>} True if enough stock is available.
  */
 function checkIfInStock(warehouseId, productId, requiredAmount) {
-  return fetch(`/inventory/warehouse/${warehouseId}`)
+  return fetch(`/inventory/warehouse/${warehouseId}`, {credentials: "include"})
     .then(res => res.json())
     .then(inventoryItems => {
       const item = inventoryItems.find(i => i.product.productId == productId);

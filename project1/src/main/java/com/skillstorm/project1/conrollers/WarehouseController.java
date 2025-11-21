@@ -20,7 +20,7 @@ import com.skillstorm.project1.services.WarehouseService;
 
 @RestController
 @RequestMapping("/warehouses")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class WarehouseController {
 
     private final WarehouseService warehouseService;

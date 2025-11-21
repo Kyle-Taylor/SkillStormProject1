@@ -18,7 +18,7 @@ import com.skillstorm.project1.services.RestockOrderService;
 
 @RestController
 @RequestMapping("/restocks")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class RestockOrderController {
 
     private final RestockOrderService restockService;

@@ -8,7 +8,7 @@
  */
 async function loadRestockOrders() {
   try {
-    const response = await fetch("/restocks");
+    const response = await fetch("/restocks", {credentials: "include"});
     const restocks = await response.json();
     const body = document.getElementById("restockTableBody");
     body.innerHTML = "";
@@ -55,8 +55,8 @@ async function openRestockModal() {
   const modalContent = document.getElementById("restockModalContent");
   modal.style.display = "flex";
 
-  const products = await (await fetch("/products")).json();
-  const warehouses = await (await fetch("/warehouses")).json();
+  const products = await (await fetch("/products", {credentials: "include"})).json();
+  const warehouses = await (await fetch("/warehouses", {credentials: "include"})).json();
 
   modalContent.innerHTML = `
     <button id="closeRestockModalBtn" class="close-btn" aria-label="Close">&times;</button>
@@ -123,7 +123,7 @@ async function openRestockModal() {
     if (!warehouseId) return;
 
     // Load ALL products
-    const allProducts = await (await fetch(`/products`)).json();
+    const allProducts = await (await fetch(`/products`, {credentials: "include"})).json();
 
     allProducts.forEach(p => {
       productSelect.innerHTML += `<option value="${p.productId}">${p.productName}</option>`;
@@ -140,7 +140,7 @@ async function openRestockModal() {
 
     if (!productId) return;
 
-    const product = await (await fetch(`/products/${productId}`)).json();
+    const product = await (await fetch(`/products/${productId}`, {credentials: "include"})).json();
 
     const supplier = product.supplier
       ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
@@ -197,6 +197,7 @@ async function openRestockModal() {
 
       await fetch("/restocks/create_restock", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           warehouseId,

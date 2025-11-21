@@ -8,7 +8,7 @@
  */
 async function loadWarehouses() {
   try {
-    const response = await fetch("/warehouses");
+    const response = await fetch("/warehouses", {credentials: "include"});
     const warehouses = await response.json();
     const body = document.getElementById("warehouseTableBody");
     let warehousesNearCapacity = 0;
@@ -115,6 +115,7 @@ document.getElementById("submitEditWarehouseBtn").addEventListener("click", asyn
   try {
     const response = await fetch(`/warehouses/edit_warehouse/${editingWarehouseId}`, {
       method: "PUT",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, location, capacity })
     });
@@ -164,7 +165,7 @@ async function loadDeleteWarehouseList() {
   list.innerHTML = "Loading...";
 
   try {
-    const response = await fetch("/warehouses");
+    const response = await fetch("/warehouses", {credentials: "include"});
     const warehouses = await response.json();
 
     if (!warehouses.length) {
@@ -253,7 +254,7 @@ document.getElementById("confirmYesBtn").addEventListener("click", async () => {
 
   try {
     for (const wId of selectedWarehouses) {
-      await fetch(`/warehouses/delete_warehouse/${wId}`, { method: "DELETE" });
+      await fetch(`/warehouses/delete_warehouse/${wId}`, { method: "DELETE", credentials: "include" });
     }
     loadTotalInventoryQuantityAndValue();
     showToast("Selected warehouse(s) deleted successfully!");
@@ -308,6 +309,7 @@ document.getElementById("submitWarehouseBtn").addEventListener("click", async ()
   try {
    const response = await fetch("/warehouses/create_warehouse", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, location, capacity })
     });
@@ -362,7 +364,7 @@ async function loadInventoryForWarehouse(warehouseId, warehouseName) {
     document.getElementById("warehouseInventoryTitle").textContent =
       `${warehouseName} Inventory`;
 
-    const response = await fetch(`/inventory/warehouse/${warehouseId}`);
+    const response = await fetch(`/inventory/warehouse/${warehouseId}`, {credentials: "include"});
     const inventory = await response.json();
     const body = document.getElementById("warehouseInventoryTableBody");
     body.innerHTML = "";
@@ -468,6 +470,7 @@ document.getElementById("confirmEditInventoryBtn").addEventListener("click", asy
   try {
     const response = await fetch(`/inventory/update_locationAndMinStock/${editingInventoryId}`, {
       method: "PUT",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         warehouseLocation: Number(newLocation),
@@ -500,7 +503,7 @@ document.getElementById("confirmEditInventoryBtn").addEventListener("click", asy
  */
 async function loadLowStockCount() {
   try {
-    const response = await fetch("/inventory/below-minimum");
+    const response = await fetch("/inventory/below-minimum", {credentials: "include"});
     const items = await response.json();
     const count = items.length;
     document.getElementById("lowStockValue").innerHTML = `${count} <small>items</small>`;
@@ -535,14 +538,14 @@ async function openTransferInventoryModal(inventoryId, fromWarehouse, productId,
   document.getElementById("transferInventoryTitle").textContent =
     `Transfer Item: ${productName}`;
 
-  const wRes = await fetch("/warehouses");
+  const wRes = await fetch("/warehouses", {credentials: "include"});
   const warehouses = await wRes.json();
 
   const select = document.getElementById("transferToWarehouseSelect");
   select.innerHTML = `<option value="">-- Choose A Warehouse --</option>`;
 
   for (const w of warehouses) {
-    const invRes = await fetch(`/inventory/warehouse/${w.warehouseId}`);
+    const invRes = await fetch(`/inventory/warehouse/${w.warehouseId}`, {credentials: "include"});
     const items = await invRes.json();
 
     const record = items.find(i => i.product.productId === productId);
@@ -601,6 +604,7 @@ async function confirmTransferInventory() {
 
     await fetch(`/inventory/transfer/${inventoryToTransfer}/${newWarehouseId}`, {
       method: "PUT",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: amount })
     });
@@ -654,7 +658,8 @@ function closeDeleteInventoryItemModal() {
 async function confirmDeleteInventoryItem(inventoryId) {
   try {
     await fetch(`/inventory/delete/${inventoryId}`, {
-      method: "DELETE"
+      method: "DELETE",
+      credentials: "include"
     });
     showToast("Inventory item deleted successfully!");
     document.getElementById("WarehouseInventoryModal").style.display = "none";

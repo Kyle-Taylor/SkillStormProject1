@@ -7,7 +7,7 @@
  */
 async function loadCheckouts() {
   try {
-    const response = await fetch("/checkouts");
+    const response = await fetch("/checkouts", {credentials: "include"});
     const checkouts = await response.json();
     const body = document.getElementById("checkoutTableBody");
     body.innerHTML = "";
@@ -52,8 +52,8 @@ async function openCheckoutModal() {
   const modalContent = document.getElementById("checkoutModalContent");
   modal.style.display = "flex";
 
-  const products = await (await fetch("/products")).json();
-  const warehouses = await (await fetch("/warehouses")).json();
+  const products = await (await fetch("/products", { credentials: "include" })).json();
+  const warehouses = await (await fetch("/warehouses", { credentials: "include" })).json();
 
   modalContent.innerHTML = `
     <button id="closeCheckoutModalBtn" class="close-btn" aria-label="Close">&times;</button>
@@ -117,7 +117,7 @@ async function openCheckoutModal() {
 
     if (!warehouseId) return;
 
-    const inventory = await (await fetch(`/inventory/warehouse/${warehouseId}`)).json();
+    const inventory = await (await fetch(`/inventory/warehouse/${warehouseId}`, { credentials: "include" })).json();
 
     inventory.forEach(item => {
       const p = item.product;
@@ -134,7 +134,7 @@ async function openCheckoutModal() {
 
     if (!productId) return;
 
-    const product = await (await fetch(`/products/${productId}`)).json();
+    const product = await (await fetch(`/products/${productId}`, { credentials: "include" })).json();
 
     const supplier = product.supplier
       ? `${product.supplier.name} (${product.supplier.contactEmail || "No email"})`
@@ -213,6 +213,7 @@ async function submitCheckout() {
     }
     const response = await fetch(URL + "/checkouts/create_checkout", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         warehouseId,
@@ -252,6 +253,7 @@ async function reduceInventory(warehouseId, productId, amount) {
   try {
     const response = await fetch("/inventory/reduce", {
       method: "PUT",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         warehouseId,
