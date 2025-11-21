@@ -221,7 +221,11 @@ async function submitNewSupplier() {
       showToast("Supplier created successfully!");
       closeCreateSupplierModal();
       loadSuppliers();
-    } else {
+    } 
+    else if(response.status === 409){
+      showToast("Supplier with this email already exists.", 3000);
+    }
+    else {
       showToast("Failed to create supplier.");
     }
   } catch (err) {

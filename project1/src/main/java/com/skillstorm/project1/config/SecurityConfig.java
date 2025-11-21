@@ -33,17 +33,6 @@ public class SecurityConfig {
                     "/checkouts/**",
                     "/users/**"
                 ).permitAll()
-
-                .requestMatchers(
-                    "/inventory/**",
-                    "/warehouses/**",
-                    "/restocks/**",
-                    "/products/**",
-                    "/suppliers/**",
-                    "/checkouts/**",
-                    "/users/**"
-                ).authenticated()
-
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form.disable());

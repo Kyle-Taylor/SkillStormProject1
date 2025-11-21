@@ -222,8 +222,8 @@
         </div>
 
         <div class="navbar-right">
-            <button class="btn-signup">Sign Up</button>
-            <button class="btn-login" onclick="window.location.href='LoginPage.html'">Log In</button>
+            <button class="btn-signup" onClick="window.location.href='Register'">Sign Up</button>
+            <button class="btn-login" onclick="window.location.href='Login'">Log In</button>
         </div>
     </nav>
 
@@ -232,7 +232,7 @@
         <div class="hero-text">
             <h1>Smarter Inventory.<br>Stronger Business.</h1>
             <p>Take control of your operations. StockSmart helps you cut waste, boost efficiency, and grow with confidence.</p>
-            <button class="btn-trial">START YOUR FREE TRIAL</button>
+            <button class="btn-trial" onClick="window.location.href='Register'">START YOUR FREE TRIAL</button>
         </div>
 
         <div class="image-frame">
@@ -240,8 +240,7 @@
         </div>
     </section>
 
-</body>
-</html>
+
 
 <!-- FEATURES SECTION -->
 <section class="features-section">
@@ -308,3 +307,82 @@
     </div>
 
 </section>
+
+<!-- CONTACT SECTION -->
+<section style="
+    max-width:900px;
+    margin:60px auto;
+    background:#1f1f1f;
+    border-radius:20px;
+    padding:40px 20px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6);
+    border:1px solid #333;
+">
+  <h2 style="
+      text-align:center;
+      font-size:2rem;
+      margin-bottom:40px;
+      color:white;
+  ">
+    Contact Us
+  </h2>
+
+  <div style="
+      max-width:700px;
+      margin:0 auto;
+      background:#2a2a2a;
+      padding:30px;
+      border-radius:12px;
+      box-shadow:0 5px 20px rgba(0,0,0,0.4);
+  ">
+    <form id="contactForm" style="display:flex; flex-direction:column; gap:20px;">
+
+      <input type="text" placeholder="Your Name" required
+        style="
+          padding:12px;
+          border:none;
+          border-radius:6px;
+          background:#3a3a3a;
+          color:white;
+        ">
+
+      <input type="email" placeholder="Your Email" required
+        style="
+          padding:12px;
+          border:none;
+          border-radius:6px;
+          background:#3a3a3a;
+          color:white;
+        ">
+
+      <textarea placeholder="Your Message" rows="5" required
+        style="
+          padding:12px;
+          border:none;
+          border-radius:6px;
+          background:#3a3a3a;
+          color:white;
+          resize:none;
+        ">
+      </textarea>
+
+      <button type="submit"
+        style="
+          padding:14px;
+          background:#ffffff;
+          color:#121212;
+          border:none;
+          border-radius:8px;
+          cursor:pointer;
+          font-weight:bold;
+          font-size:1rem;
+        ">
+        Send Message
+      </button>
+
+    </form>
+  </div>
+</section>
+
+</body>
+</html>
